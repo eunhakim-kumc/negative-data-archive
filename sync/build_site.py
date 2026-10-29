@@ -185,9 +185,15 @@ def main():
     args = parser.parse_args()
 
     dump_dir = args.dump.resolve()
+    if not dump_dir.is_dir():
+        sys.exit(f"오류: {dump_dir} 가 없습니다. 덤프를 먼저 실행하세요.")
+
+    # An empty `records` collection writes no directory at all. That is a valid
+    # state for a young archive, so distinguish it from a dump that never ran:
+    # the dump directory missing is an error, an empty one is simply zero records.
     record_dir = dump_dir / "records"
     if not record_dir.is_dir():
-        sys.exit(f"오류: {record_dir} 가 없습니다. 덤프 경로를 확인하세요.")
+        warn("덤프에 records 가 없습니다 — 공개 기록 0건으로 처리합니다.")
 
     data_out = args.site / "data"
     img_out = data_out / "img"
