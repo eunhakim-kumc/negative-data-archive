@@ -1,0 +1,46 @@
+# 라이선스
+
+이 저장소는 내용과 코드에 서로 다른 라이선스를 적용합니다.
+
+## 아카이브 내용 — CC BY 4.0
+
+`docs/data/` 아래의 기록 데이터와 첨부 이미지, 그리고 `README.md`와 `제출_안내.md`의
+문서는 **Creative Commons Attribution 4.0 International (CC BY 4.0)** 으로 공개합니다.
+
+<https://creativecommons.org/licenses/by/4.0/deed.ko>
+
+출처를 밝히면 복제·배포·개작·상업적 이용이 자유롭습니다. 인용 시에는 각 기록의
+상세 화면에 표시되는 인용 문자열을 사용해 주세요. 제출자 이름과 연구실이 출처의
+일부입니다.
+
+각 기록은 특정 조건에서의 단일 관찰이며 일반적인 결론이 아닙니다. 다른 조건에서는
+다르게 동작할 수 있습니다.
+
+## 코드 — MIT
+
+`docs/index.html`, `sync/build_site.py`, `negative-data-archive.html` 등 이 저장소의
+소프트웨어는 MIT 라이선스로 공개합니다.
+
+```
+MIT License
+
+Copyright (c) 2026 Eunha Kim, Korea University College of Medicine
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
