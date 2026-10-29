@@ -1,0 +1,1305 @@
+<title>Negative Data Archive</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+
+<style>
+/* Layout: sticky filter rail over a dense record index; detail and form
+   replace the index in place so the page never stacks three scroll areas. */
+:root{
+  --paper:#F6F8F8;
+  --surface:#FFFFFF;
+  --surface-2:#EFF3F3;
+  --ink:#14181B;
+  --ink-2:#4E585E;
+  --ink-3:#7C878D;
+  --line:#DCE3E4;
+  --line-2:#C3CDCF;
+  --accent:#0C6B61;
+  --accent-ink:#FFFFFF;
+  --accent-soft:#E0EFEC;
+  --o-dead:#AE3119;
+  --o-cond:#9A6500;
+  --o-repro:#65479A;
+  --o-nodiff:#36689E;
+  --o-dead-soft:#F7E6E2;
+  --o-cond-soft:#F7EEDC;
+  --o-repro-soft:#EDE8F7;
+  --o-nodiff-soft:#E3ECF5;
+  --sans:"IBM Plex Sans KR","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --gut-l:max(16px,env(safe-area-inset-left,0px));
+  --gut-r:max(16px,env(safe-area-inset-right,0px));
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#111517;
+    --surface:#181D1F;
+    --surface-2:#1F2528;
+    --ink:#E7ECED;
+    --ink-2:#9BA6AB;
+    --ink-3:#77838A;
+    --line:#2A3135;
+    --line-2:#3A4348;
+    --accent:#4FB5A6;
+    --accent-ink:#0B1A18;
+    --accent-soft:#16312D;
+    --o-dead:#E5836C;
+    --o-cond:#D4A449;
+    --o-repro:#A890DD;
+    --o-nodiff:#79A9DB;
+    --o-dead-soft:#32201C;
+    --o-cond-soft:#302715;
+    --o-repro-soft:#272036;
+    --o-nodiff-soft:#1C2731;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#111517;
+  --surface:#181D1F;
+  --surface-2:#1F2528;
+  --ink:#E7ECED;
+  --ink-2:#9BA6AB;
+  --ink-3:#77838A;
+  --line:#2A3135;
+  --line-2:#3A4348;
+  --accent:#4FB5A6;
+  --accent-ink:#0B1A18;
+  --accent-soft:#16312D;
+  --o-dead:#E5836C;
+  --o-cond:#D4A449;
+  --o-repro:#A890DD;
+  --o-nodiff:#79A9DB;
+  --o-dead-soft:#32201C;
+  --o-cond-soft:#302715;
+  --o-repro-soft:#272036;
+  --o-nodiff-soft:#1C2731;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:15px;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--paper)}
+h1,h2,h3{margin:0;text-wrap:balance;line-height:1.3;font-weight:700;letter-spacing:-0.01em}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+.wrap{width:100%;max-width:1120px;margin-inline:auto;padding-left:var(--gut-l);padding-right:var(--gut-r)}
+.mono{font-family:var(--mono);font-size:0.92em;letter-spacing:-0.01em}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ---- masthead ---- */
+.masthead{background:var(--surface);border-bottom:1px solid var(--line)}
+.masthead .wrap{padding-block:26px 22px;display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between}
+.brand{min-width:0;max-width:62ch}
+.eyebrow{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.masthead h1{font-size:27px;margin-top:6px}
+.tagline{color:var(--ink-2);font-size:14px;margin-top:8px}
+.mast-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+.btn{
+  border:1px solid var(--line-2);background:var(--surface);color:var(--ink);
+  padding:8px 14px;border-radius:4px;cursor:pointer;font-weight:500;font-size:14px;
+  transition:background .12s ease,border-color .12s ease;
+}
+.btn:hover{background:var(--surface-2)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn-primary:hover{filter:brightness(1.08);background:var(--accent)}
+.btn-sm{padding:5px 10px;font-size:13px}
+.btn-danger{color:var(--o-dead);border-color:var(--o-dead)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ---- toolbar ---- */
+.toolbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--paper);border-bottom:1px solid var(--line)}
+.toolbar .wrap{padding-block:12px}
+.search-row{display:flex;gap:8px;align-items:center}
+#q{flex:1;min-width:0;padding:9px 12px;border:1px solid var(--line-2);border-radius:4px;background:var(--surface)}
+#sort{padding:9px 10px;border:1px solid var(--line-2);border-radius:4px;background:var(--surface)}
+.chiprow{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center}
+.chiprow .rowlabel{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:700;margin-right:2px}
+.chip{
+  border:1px solid var(--line-2);background:transparent;color:var(--ink-2);
+  padding:4px 11px;border-radius:999px;cursor:pointer;font-size:13px;line-height:1.5;
+}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:500}
+.chip .n{font-variant-numeric:tabular-nums;opacity:.7;margin-left:5px;font-size:12px}
+
+/* ---- index ---- */
+main{padding-block:22px 56px}
+.counts{color:var(--ink-3);font-size:13px;margin-bottom:12px}
+.list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.card{
+  position:relative;background:var(--surface);border:1px solid var(--line);
+  border-radius:4px;padding:14px 16px 14px 20px;cursor:pointer;min-width:0;
+  transition:border-color .12s ease;
+}
+.card:hover{border-color:var(--line-2)}
+.card::before{content:"";position:absolute;left:0;top:-1px;bottom:-1px;width:4px;border-radius:4px 0 0 4px;background:var(--stripe,var(--line-2))}
+.card-top{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.card h3{font-size:16px;min-width:0;flex:1}
+.card .summary{color:var(--ink-2);font-size:14px;margin-top:6px;min-width:0}
+.meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:12.5px;color:var(--ink-3)}
+.meta .sep{color:var(--line-2)}
+.tag{background:var(--surface-2);border:1px solid var(--line);border-radius:3px;padding:1px 7px;font-size:12px;color:var(--ink-2)}
+
+.badge{font-size:12px;font-weight:500;padding:2px 9px;border-radius:3px;white-space:nowrap}
+.b-type{background:var(--surface-2);color:var(--ink-2);border:1px solid var(--line)}
+.o-dead{background:var(--o-dead-soft);color:var(--o-dead)}
+.o-cond{background:var(--o-cond-soft);color:var(--o-cond)}
+.o-repro{background:var(--o-repro-soft);color:var(--o-repro)}
+.o-nodiff{background:var(--o-nodiff-soft);color:var(--o-nodiff)}
+.confirms{color:var(--accent);font-weight:500}
+
+/* ---- empty / guide ---- */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:22px 20px}
+.panel h2{font-size:18px}
+.panel p{color:var(--ink-2);margin-top:8px;max-width:62ch}
+.guide{margin-top:14px}
+.guide summary{cursor:pointer;font-weight:500;color:var(--accent);font-size:14px}
+.guide-grid{display:grid;gap:14px;margin-top:14px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.guide-card{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:3px;padding:12px 14px;background:var(--surface-2);min-width:0}
+.guide-card h4{margin:0 0 6px;font-size:14px}
+.guide-card ul{margin:0;padding-left:1.1em;color:var(--ink-2);font-size:13px;line-height:1.7}
+.guide-card .ex{font-family:var(--mono);font-size:12px;color:var(--ink-3);display:block;margin-top:6px;word-break:break-word}
+
+/* ---- detail ---- */
+.detail{max-width:860px}
+.backlink{background:none;border:0;color:var(--accent);cursor:pointer;padding:0;font-size:14px;font-weight:500;margin-bottom:14px}
+.detail h2{font-size:23px;margin-top:10px}
+.detail-badges{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.lede{font-size:16px;color:var(--ink);margin-top:14px;background:var(--accent-soft);border-left:3px solid var(--accent);padding:12px 14px;border-radius:0 3px 3px 0}
+.dl{display:grid;grid-template-columns:minmax(120px,170px) 1fr;gap:0;margin:0;border-top:1px solid var(--line)}
+.dl>dt{padding:9px 12px 9px 0;border-bottom:1px solid var(--line);color:var(--ink-3);font-size:13px;font-weight:500}
+.dl>dd{padding:9px 0 9px 12px;border-bottom:1px solid var(--line);margin:0;min-width:0;overflow-wrap:anywhere;white-space:pre-wrap}
+.sec{margin-top:26px}
+.sec h3{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px}
+.prose{white-space:pre-wrap;overflow-wrap:anywhere}
+.shots{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.shot{border:1px solid var(--line);border-radius:3px;overflow:hidden;background:var(--surface-2);min-width:0}
+.shot img{display:block;width:100%;max-width:100%;height:auto}
+.shot figcaption{padding:7px 10px;font-size:12.5px;color:var(--ink-2);border-top:1px solid var(--line)}
+.shot .miss{padding:22px 12px;text-align:center;color:var(--ink-3);font-size:13px}
+.confirm-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.confirm-list li{border:1px solid var(--line);border-radius:3px;padding:9px 12px;background:var(--surface);font-size:14px}
+.confirm-list .who{color:var(--ink-3);font-size:12.5px}
+.detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
+
+/* ---- form ---- */
+.form{max-width:780px}
+.form h2{font-size:22px}
+.fieldset{border:0;margin:0;padding:0}
+.fs-head{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:700;margin:26px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.grid2{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.f{display:flex;flex-direction:column;gap:5px;min-width:0}
+.f label{font-size:13px;font-weight:500}
+.f .hint{font-size:12px;color:var(--ink-3);line-height:1.5}
+.f .req{color:var(--o-dead);margin-left:2px}
+.f input,.f select,.f textarea{
+  width:100%;padding:8px 10px;border:1px solid var(--line-2);border-radius:4px;
+  background:var(--surface);
+}
+.f textarea{min-height:88px;resize:vertical;line-height:1.6}
+.f.span2{grid-column:1/-1}
+.optgrid{display:flex;gap:6px;flex-wrap:wrap}
+.optgrid label{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line-2);border-radius:999px;padding:4px 11px;cursor:pointer;font-weight:400;font-size:13px;background:var(--surface)}
+.optgrid input{width:auto;padding:0;margin:0}
+.filebox{border:1px dashed var(--line-2);border-radius:4px;padding:14px;background:var(--surface)}
+.thumbs{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:12px}
+.thumb{border:1px solid var(--line);border-radius:3px;overflow:hidden;background:var(--surface-2);min-width:0}
+.thumb img{display:block;width:100%;height:110px;object-fit:cover}
+.thumb input{border:0;border-top:1px solid var(--line);border-radius:0;font-size:12.5px;padding:6px 8px}
+.thumb button{width:100%;border:0;border-top:1px solid var(--line);background:transparent;color:var(--o-dead);cursor:pointer;font-size:12.5px;padding:5px}
+.form-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:28px;padding-top:18px;border-top:1px solid var(--line)}
+.err{color:var(--o-dead);font-size:13.5px}
+.ok{color:var(--accent);font-size:13.5px}
+
+/* ---- notices ---- */
+.notice{border:1px solid var(--line);border-left:3px solid var(--o-cond);background:var(--surface);border-radius:0 3px 3px 0;padding:11px 14px;font-size:13.5px;color:var(--ink-2);margin-bottom:16px}
+footer{border-top:1px solid var(--line);background:var(--surface)}
+footer .wrap{padding-block:22px 30px;font-size:13px;color:var(--ink-3)}
+footer p+p{margin-top:6px}
+.skel{height:76px;border-radius:4px;background:var(--surface);border:1px solid var(--line)}
+
+@media (max-width:620px){
+  .masthead h1{font-size:22px}
+  .dl{grid-template-columns:1fr}
+  .dl>dt{padding-bottom:0;border-bottom:0}
+  .dl>dd{padding-left:0;padding-top:2px}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="brand">
+      <div class="eyebrow">고려대학교 의과대학 BK21 의과학과</div>
+      <h1>Negative Data Archive</h1>
+      <p class="tagline">작동하지 않은 항체, 새는 Cre, 재현되지 않은 프로토콜, 차이가 없던 결과. 논문에 실리지 않는 이 기록들이 다음 사람의 몇 달을 아낍니다.</p>
+    </div>
+    <div class="mast-actions">
+      <button class="btn btn-primary" id="btn-new">기록 추가</button>
+      <button class="btn" id="btn-export" hidden>CSV 내보내기</button>
+    </div>
+  </div>
+</header>
+
+<div class="toolbar" id="toolbar">
+  <div class="wrap">
+    <div class="search-row">
+      <input id="q" type="search" placeholder="항원, clone, catalog #, 마우스 라인, 키트, 유전자명으로 검색" autocomplete="off">
+      <select id="sort" aria-label="정렬">
+        <option value="new">최신순</option>
+        <option value="confirm">재현 확인 많은 순</option>
+        <option value="title">제목순</option>
+      </select>
+    </div>
+    <div class="chiprow" id="type-chips"><span class="rowlabel">유형</span></div>
+    <div class="chiprow" id="outcome-chips"><span class="rowlabel">결과</span></div>
+  </div>
+</div>
+
+<main>
+  <div class="wrap">
+    <section id="view-browse">
+      <div id="notice-slot"></div>
+      <p class="counts" id="counts"></p>
+      <ul class="list" id="list"></ul>
+      <div id="empty" hidden></div>
+    </section>
+    <section id="view-detail" class="detail" hidden></section>
+    <section id="view-form" class="form" hidden></section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><strong>기록 원칙</strong> — 조건을 특정할 수 있을 만큼 적습니다. "이 항체는 안 됩니다"가 아니라 "이 lot을, 이 고정 조건에서, 이 조직에 썼을 때 안 됩니다".</p>
+    <p>제출자 실명과 연구실을 함께 남깁니다. 비판이 아니라 조건 공유를 위한 기록이며, 실패한 실험이 아니라 좁혀진 조건을 기록하는 자리입니다.</p>
+    <p><strong>공개 범위</strong> — 등록된 기록은 제출자 이름·연구실과 함께 공개 웹사이트로 주기적으로 미러링됩니다. 연락처 이메일은 공개되지 않습니다. 공개를 원치 않는 내용은 등록하지 마시고, 이미 등록한 기록을 삭제하면 다음 동기화에서 공개 사이트에서도 내려갑니다.</p>
+    <p>본인이 올린 기록은 언제든 수정·삭제할 수 있습니다. 운영자는 전체 기록을 관리합니다.</p>
+  </div>
+</footer>
+
+<script>
+"use strict";
+
+/* ------------------------------------------------------------------ *
+ * Schema. Each record type carries the fields that actually determine
+ * whether someone else's attempt will behave the same way — lot and
+ * fixation for antibodies, induction regimen for Cre lines, and so on.
+ * ------------------------------------------------------------------ */
+
+const OUTCOMES = {
+  dead:   { label: "작동 안 함",      cls: "o-dead",   stripe: "var(--o-dead)" },
+  cond:   { label: "조건부 작동",     cls: "o-cond",   stripe: "var(--o-cond)" },
+  repro:  { label: "재현 실패",       cls: "o-repro",  stripe: "var(--o-repro)" },
+  nodiff: { label: "유의한 차이 없음", cls: "o-nodiff", stripe: "var(--o-nodiff)" },
+};
+
+const f = (k, label, opt = {}) => Object.assign({ k, label }, opt);
+
+const TYPES = {
+  antibody: {
+    label: "항체",
+    blurb: "IHC·IF·WB·FACS에서 기대한 신호가 나오지 않았거나, 특정 조건에서만 나온 경우",
+    fields: [
+      f("target", "표적 항원 / 단백질", { req: true, ph: "예: IBA1, CD45, phospho-STAT3 (Tyr705)" }),
+      f("vendor", "제조사", { ph: "예: Abcam, Cell Signaling, BioLegend" }),
+      f("catalog", "Catalog #", { mono: true, ph: "예: ab178846" }),
+      f("clone", "Clone", { mono: true, ph: "예: EPR16588, 30-F11" }),
+      f("lot", "Lot #", { mono: true, ph: "예: GR3374129-3", hint: "lot마다 성능이 다른 경우가 많아 추적에 가장 중요한 항목입니다." }),
+      f("hostIso", "Host / Isotype", { ph: "예: Rabbit monoclonal IgG" }),
+      f("conjugate", "Conjugate / Fluorophore", { ph: "예: unconjugated, BV421, AF647" }),
+      f("application", "적용 (Application)", { type: "multi", opts: ["IHC-P", "IHC-F", "IF/ICC", "WB", "Flow", "IP", "ChIP", "기타"] }),
+      f("dilution", "시험한 희석배수", { mono: true, ph: "예: 1:200, 1:500, 1:1000 모두 시험" }),
+      f("fixation", "고정 조건", { ph: "예: 4% PFA 침지 16 h, 4°C → 30% sucrose" }),
+      f("retrieval", "항원 부활 (Antigen retrieval)", { ph: "예: citrate pH 6.0, 95°C 20 min / EDTA pH 9.0 / 미시행" }),
+      f("block", "Blocking / Permeabilization", { ph: "예: 5% NDS + 0.3% Triton X-100, RT 1 h" }),
+      f("posControl", "양성 대조", { type: "textarea", ph: "같은 실험에서 함께 돌린 양성 대조와 그 결과. 대조가 살아 있어야 음성 데이터가 의미를 가집니다." }),
+    ],
+  },
+  mouse: {
+    label: "마우스 라인 / Cre",
+    blurb: "Cre leakiness, recombination 효율, 유도 조건, 예상과 다른 발현 패턴, 유전형 판정 문제",
+    fields: [
+      f("lineName", "라인 통칭", { req: true, ph: "예: Cx3cr1-CreER, Nestin-Cre" }),
+      f("nomenclature", "공식 명명 (Nomenclature)", { mono: true, ph: "예: B6.129P2(Cg)-Cx3cr1tm2.1(cre/ERT2)Litt/WganJ" }),
+      f("stockId", "Stock / MGI ID", { mono: true, ph: "예: JAX 021160, RBRC05454" }),
+      f("background", "배경 계통", { ph: "예: C57BL/6J, 8세대 backcross" }),
+      f("driver", "Driver 종류", { type: "select", opts: ["Cre", "CreERT2 / CreER", "Flp / FlpO", "rtTA / tTA", "Dre", "기타 / 해당 없음"] }),
+      f("reporter", "교배한 Reporter / floxed allele", { ph: "예: Ai14 (Rosa26-lsl-tdTomato), Il6rafl/fl" }),
+      f("induction", "유도 조건", { type: "textarea", ph: "예: Tamoxifen 2 mg/일, 경구 투여, 연속 5일, P21부터. 분석은 마지막 투여 후 21일." }),
+      f("efficiency", "Recombination 효율", { ph: "예: 피질 미세아교세포에서 tdTomato+ ~62% (IBA1+ 기준, n=4)" }),
+      f("leak", "Leaky 발현 부위 / 시점", { type: "textarea", ph: "예: tamoxifen 미투여 대조에서 간과 비장 대식세포의 8~12%가 이미 tdTomato+. 뇌에서는 1% 미만." }),
+      f("genotyping", "유전형 판정 문제", { type: "textarea", ph: "예: 공급처 프로토콜 프라이머로 WT/het 밴드 구분 불가. 사용한 대체 프라이머와 조건." }),
+      f("pheno", "배경 표현형", { type: "textarea", ph: "Cre 자체의 독성, 번식력 저하, 체중 차이 등 실험 해석에 영향을 주는 관찰." }),
+    ],
+  },
+  protocol: {
+    label: "프로토콜 / 시약",
+    blurb: "조직 분리, 배양, 키트, buffer 조성 등에서 실패했거나 재현되지 않은 조건",
+    fields: [
+      f("procedure", "프로토콜 / 수기 이름", { req: true, ph: "예: 성체 마우스 뇌 미세아교세포 분리 (Percoll gradient)" }),
+      f("kitVendor", "키트 / 시약 제조사", { ph: "예: Miltenyi, Worthington" }),
+      f("kitCatalog", "Catalog / Lot #", { mono: true, ph: "예: 130-107-677" }),
+      f("sourceRef", "따른 원 프로토콜 출처", { ph: "예: PMID 29472486의 Methods, 또는 제조사 매뉴얼 v4.2" }),
+      f("failedStep", "실패한 단계", { req: true, type: "textarea", ph: "어느 단계에서 어떻게 어긋났는지. 예: 효소 처리 후 세포 생존율이 30% 미만으로 떨어져 이후 염색이 불가." }),
+      f("conditions", "시험한 조건 범위", { type: "textarea", ph: "예: papain 농도 20/30/40 U/mL, 처리 시간 20/30/45 min 조합 시험." }),
+      f("alternative", "대안 / 해결 조건", { type: "textarea", ph: "결국 통한 방법이 있으면 적어 주세요. 없으면 '미해결'로 남겨도 충분한 정보입니다." }),
+    ],
+  },
+  null_result: {
+    label: "실험 결과 (null result)",
+    blurb: "가설을 제대로 검정했으나 유의한 차이가 없었던 결과. 중복 실험을 막는 가장 값진 기록입니다.",
+    fields: [
+      f("hypothesis", "검정한 가설", { req: true, type: "textarea", ph: "예: 모체 면역 활성화가 태아 뇌의 미세아교세포 수를 증가시킬 것이다." }),
+      f("model", "모델 / 계통", { ph: "예: C57BL/6J, poly(I:C) 20 mg/kg i.p., E12.5" }),
+      f("intervention", "처치 / 비교군", { ph: "예: poly(I:C) vs saline, E17.5에 분석" }),
+      f("readout", "측정 지표 / 방법", { ph: "예: IBA1+ 세포 밀도 (IHC), 유세포분석 CD45int CD11b+ 분획" }),
+      f("groups", "군 구성과 n수", { req: true, mono: true, ph: "예: saline n=6 (3 litters), poly(I:C) n=7 (4 litters), 모두 수컷 태자" }),
+      f("statTest", "통계 검정", { req: true, ph: "예: Shapiro-Wilk 통과 후 Welch's t-test (litter를 단위로)" }),
+      f("statResult", "검정 결과", { req: true, mono: true, ph: "예: t(10.2)=0.84, p=0.42, Hedges' g=0.41 [-0.6, 1.4]" }),
+      f("powerNote", "검정력 / 해석상 한계", { type: "textarea", ph: "예: 현재 n으로는 g=1.2 이상만 80% 검정력으로 검출 가능. 작은 효과는 배제하지 못함.", hint: "음성 결과를 '효과 없음'으로 읽을 수 있는 범위를 적어 주면 인용 가치가 크게 올라갑니다." }),
+    ],
+  },
+};
+
+const COMMON = [
+  f("species", "종 / 세포", { ph: "예: Mus musculus (C57BL/6J), 또는 BV2 세포주" }),
+  f("tissue", "조직 / 시료", { ph: "예: 성체 뇌 관류고정 절편 (30 µm), 비장 단일세포" }),
+];
+
+/* ------------------------------------------------------------------ *
+ * State
+ * ------------------------------------------------------------------ */
+
+const state = {
+  records: [],
+  ready: false,
+  db: null,
+  assets: null,
+  user: null,
+  uid: null,
+  canEdit: false,
+  q: "",
+  type: "all",
+  outcome: "all",
+  sort: "new",
+  current: null,
+};
+
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, cls, text) => {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+};
+const esc = (s) => String(s == null ? "" : s);
+
+// localStorage is a per-viewer convenience only; it must never be required.
+function remember(k, v) { try { localStorage.setItem("nda:" + k, v); } catch (e) { /* private window */ } }
+function recall(k) { try { return localStorage.getItem("nda:" + k) || ""; } catch (e) { return ""; } }
+
+function fmtDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d)) return "";
+  return d.getFullYear() + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + String(d.getDate()).padStart(2, "0");
+}
+
+/* ------------------------------------------------------------------ *
+ * Boot
+ * ------------------------------------------------------------------ */
+
+buildChips();
+renderSkeleton();
+wireToolbar();
+boot();
+
+async function boot() {
+  let db = null, user = null;
+  try { db = await claude.use("db"); } catch (e) { db = null; }
+  try { user = await claude.use("user"); } catch (e) { user = null; }
+  try { state.assets = await claude.use("assets"); } catch (e) { state.assets = null; }
+
+  state.db = db;
+  state.user = user;
+
+  if (user) {
+    try { state.uid = await user.id(); } catch (e) { state.uid = null; }
+    try { state.canEdit = !!(await user.canEdit()); } catch (e) { state.canEdit = false; }
+  }
+  $("#btn-export").hidden = !state.canEdit;
+
+  if (!db) {
+    state.ready = true;
+    state.records = [];
+    render();
+    showNotice("저장소에 연결하지 못했습니다. 이 페이지를 보려면 claude.ai에 로그인한 상태여야 합니다. 로그인 후 새로고침해 주세요.");
+    return;
+  }
+
+  db.collection("records").orderBy("createdAt", "desc").onSnapshot(
+    (snap) => {
+      state.records = snap.docs.map((d) => Object.assign({ id: d.id }, d.data()));
+      state.ready = true;
+      render();
+    },
+    (err) => {
+      state.ready = true;
+      render();
+      showNotice("기록을 불러오는 중 문제가 발생했습니다 (" + err.code + "). 새로고침해 주세요.");
+    }
+  );
+}
+
+function showNotice(msg) {
+  const slot = $("#notice-slot");
+  slot.innerHTML = "";
+  slot.appendChild(el("div", "notice", msg));
+}
+
+/* ------------------------------------------------------------------ *
+ * Toolbar
+ * ------------------------------------------------------------------ */
+
+function buildChips() {
+  const tc = $("#type-chips");
+  const oc = $("#outcome-chips");
+  const mk = (row, key, val, label) => {
+    const b = el("button", "chip");
+    b.type = "button";
+    b.dataset.key = key;
+    b.dataset.val = val;
+    b.setAttribute("aria-pressed", String(val === "all"));
+    b.appendChild(el("span", null, label));
+    b.appendChild(el("span", "n", ""));
+    row.appendChild(b);
+    return b;
+  };
+  mk(tc, "type", "all", "전체");
+  Object.keys(TYPES).forEach((k) => mk(tc, "type", k, TYPES[k].label));
+  mk(oc, "outcome", "all", "전체");
+  Object.keys(OUTCOMES).forEach((k) => mk(oc, "outcome", k, OUTCOMES[k].label));
+}
+
+function wireToolbar() {
+  $("#q").addEventListener("input", (e) => { state.q = e.target.value.trim().toLowerCase(); render(); });
+  $("#sort").addEventListener("change", (e) => { state.sort = e.target.value; render(); });
+  document.addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if (!chip) return;
+    state[chip.dataset.key] = chip.dataset.val;
+    show("browse");
+    render();
+  });
+  $("#btn-new").addEventListener("click", () => openForm(null));
+  $("#btn-export").addEventListener("click", exportCsv);
+}
+
+/* ------------------------------------------------------------------ *
+ * Filtering + index render
+ * ------------------------------------------------------------------ */
+
+function haystack(r) {
+  if (r._hay) return r._hay;
+  const parts = [];
+  Object.keys(r).forEach((k) => {
+    if (k === "images" || k === "_hay") return;
+    const v = r[k];
+    if (typeof v === "string") parts.push(v);
+    else if (Array.isArray(v)) parts.push(v.filter((x) => typeof x === "string").join(" "));
+  });
+  r._hay = parts.join(" \u0001 ").toLowerCase();
+  return r._hay;
+}
+
+function filtered() {
+  let out = state.records.filter((r) => {
+    if (state.type !== "all" && r.type !== state.type) return false;
+    if (state.outcome !== "all" && r.outcome !== state.outcome) return false;
+    if (state.q && haystack(r).indexOf(state.q) === -1) return false;
+    return true;
+  });
+  if (state.sort === "confirm") out = out.slice().sort((a, b) => (b.confirmCount || 0) - (a.confirmCount || 0));
+  else if (state.sort === "title") out = out.slice().sort((a, b) => String(a.title).localeCompare(String(b.title), "ko"));
+  return out;
+}
+
+function renderSkeleton() {
+  const list = $("#list");
+  list.innerHTML = "";
+  for (let i = 0; i < 3; i++) list.appendChild(el("li", "skel"));
+}
+
+function render() {
+  document.querySelectorAll(".chip").forEach((c) => {
+    c.setAttribute("aria-pressed", String(state[c.dataset.key] === c.dataset.val));
+    const n = c.querySelector(".n");
+    const v = c.dataset.val;
+    const key = c.dataset.key;
+    const count = v === "all" ? state.records.length : state.records.filter((r) => r[key] === v).length;
+    n.textContent = state.ready ? count : "";
+  });
+
+  if (!state.ready) return;
+
+  const rows = filtered();
+  const list = $("#list");
+  const empty = $("#empty");
+  list.innerHTML = "";
+  empty.innerHTML = "";
+
+  $("#counts").textContent = state.records.length === 0 ? ""
+    : rows.length + "건 표시 (전체 " + state.records.length + "건)";
+
+  if (state.records.length === 0) {
+    empty.hidden = false;
+    empty.appendChild(renderWelcome());
+    return;
+  }
+  if (rows.length === 0) {
+    empty.hidden = false;
+    const p = el("div", "panel");
+    p.appendChild(el("h2", null, "조건에 맞는 기록이 없습니다"));
+    p.appendChild(el("p", null, "검색어나 필터를 넓혀 보세요. 아직 아무도 올리지 않은 조건이라면, 직접 첫 기록을 남겨 주세요."));
+    empty.appendChild(p);
+    return;
+  }
+  empty.hidden = true;
+  rows.forEach((r) => list.appendChild(card(r)));
+}
+
+function card(r) {
+  const o = OUTCOMES[r.outcome] || OUTCOMES.dead;
+  const li = el("li", "card");
+  li.style.setProperty("--stripe", o.stripe);
+  li.tabIndex = 0;
+  li.setAttribute("role", "button");
+
+  const top = el("div", "card-top");
+  top.appendChild(el("h3", null, r.title || "(제목 없음)"));
+  top.appendChild(el("span", "badge " + o.cls, o.label));
+  li.appendChild(top);
+
+  if (r.summary) li.appendChild(el("p", "summary", r.summary));
+
+  const meta = el("div", "meta");
+  meta.appendChild(el("span", "badge b-type", (TYPES[r.type] || {}).label || r.type));
+  const key = keyLine(r);
+  if (key) meta.appendChild(el("span", "mono", key));
+  meta.appendChild(el("span", "sep", "·"));
+  meta.appendChild(el("span", null, (r.submitterLab || "") + (r.submitterName ? " " + r.submitterName : "")));
+  meta.appendChild(el("span", "sep", "·"));
+  meta.appendChild(el("span", "tnum", fmtDate(r.createdAt)));
+  if (r.confirmCount) {
+    meta.appendChild(el("span", "sep", "·"));
+    meta.appendChild(el("span", "confirms tnum", "재현 확인 " + r.confirmCount));
+  }
+  (r.tags || []).slice(0, 4).forEach((t) => meta.appendChild(el("span", "tag", t)));
+  li.appendChild(meta);
+
+  const open = () => openDetail(r.id);
+  li.addEventListener("click", open);
+  li.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+  return li;
+}
+
+// The one line that tells a reader whether this record is about their reagent.
+function keyLine(r) {
+  if (r.type === "antibody") return [r.target, r.clone, r.catalog].filter(Boolean).join(" · ");
+  if (r.type === "mouse") return [r.lineName, r.stockId].filter(Boolean).join(" · ");
+  if (r.type === "protocol") return [r.procedure, r.kitCatalog].filter(Boolean).join(" · ");
+  if (r.type === "null_result") return r.groups || "";
+  return "";
+}
+
+function renderWelcome() {
+  const p = el("div", "panel");
+  p.appendChild(el("h2", null, "아직 기록이 없습니다"));
+  p.appendChild(el("p", null, "첫 기록을 남겨 주세요. 지난주에 안 됐던 항체 하나, 생각보다 새던 Cre 하나면 충분합니다. 아래는 어떤 항목을 적으면 다음 사람이 바로 쓸 수 있는지 정리한 안내입니다."));
+
+  const d = el("details", "guide");
+  d.open = true;
+  d.appendChild(el("summary", null, "유형별 작성 안내"));
+  const g = el("div", "guide-grid");
+  Object.keys(TYPES).forEach((k) => {
+    const t = TYPES[k];
+    const c = el("div", "guide-card");
+    c.appendChild(el("h4", null, t.label));
+    const ul = el("ul");
+    t.fields.filter((x) => x.req || x.hint).slice(0, 3).forEach((x) => ul.appendChild(el("li", null, x.label)));
+    t.fields.filter((x) => !x.req && !x.hint).slice(0, 3).forEach((x) => ul.appendChild(el("li", null, x.label)));
+    c.appendChild(ul);
+    const ex = t.fields.find((x) => x.ph);
+    if (ex) c.appendChild(el("span", "ex", ex.ph));
+    g.appendChild(c);
+  });
+  d.appendChild(g);
+  p.appendChild(d);
+
+  const b = el("button", "btn btn-primary", "첫 기록 작성하기");
+  b.style.marginTop = "18px";
+  b.addEventListener("click", () => openForm(null));
+  p.appendChild(b);
+  return p;
+}
+
+/* ------------------------------------------------------------------ *
+ * View switching
+ * ------------------------------------------------------------------ */
+
+function show(which) {
+  $("#view-browse").hidden = which !== "browse";
+  $("#view-detail").hidden = which !== "detail";
+  $("#view-form").hidden = which !== "form";
+  $("#toolbar").hidden = which !== "browse";
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+/* ------------------------------------------------------------------ *
+ * Detail
+ * ------------------------------------------------------------------ */
+
+async function openDetail(id) {
+  const r = state.records.find((x) => x.id === id);
+  if (!r) return;
+  state.current = id;
+  const root = $("#view-detail");
+  root.innerHTML = "";
+  show("detail");
+
+  const back = el("button", "backlink", "← 목록으로");
+  back.addEventListener("click", () => { state.current = null; show("browse"); });
+  root.appendChild(back);
+
+  const o = OUTCOMES[r.outcome] || OUTCOMES.dead;
+  const badges = el("div", "detail-badges");
+  badges.appendChild(el("span", "badge b-type", (TYPES[r.type] || {}).label || r.type));
+  badges.appendChild(el("span", "badge " + o.cls, o.label));
+  root.appendChild(badges);
+  root.appendChild(el("h2", null, r.title || "(제목 없음)"));
+
+  if (r.summary) root.appendChild(el("p", "lede", r.summary));
+
+  // Type-specific + common fields as a definition list.
+  const dl = el("dl", "dl");
+  const push = (label, val, mono) => {
+    if (!val || (Array.isArray(val) && !val.length)) return;
+    dl.appendChild(el("dt", null, label));
+    const dd = el("dd", mono ? "mono" : null, Array.isArray(val) ? val.join(", ") : val);
+    dl.appendChild(dd);
+  };
+  (TYPES[r.type] || { fields: [] }).fields.forEach((fd) => push(fd.label, r[fd.k], fd.mono));
+  COMMON.forEach((fd) => push(fd.label, r[fd.k], fd.mono));
+  if (dl.children.length) {
+    const s = el("div", "sec");
+    s.appendChild(el("h3", null, "조건"));
+    s.appendChild(dl);
+    root.appendChild(s);
+  }
+
+  [["상세 기록", r.detail], ["시도한 조건", r.tried], ["해결 / 대안", r.resolution]].forEach(([h, v]) => {
+    if (!v) return;
+    const s = el("div", "sec");
+    s.appendChild(el("h3", null, h));
+    s.appendChild(el("p", "prose", v));
+    root.appendChild(s);
+  });
+
+  if (r.refs) {
+    const s = el("div", "sec");
+    s.appendChild(el("h3", null, "참고 문헌 / 링크"));
+    s.appendChild(el("p", "prose", r.refs));
+    root.appendChild(s);
+  }
+
+  if ((r.images || []).length) {
+    const s = el("div", "sec");
+    s.appendChild(el("h3", null, "첨부 데이터"));
+    const g = el("div", "shots");
+    (r.images || []).forEach((im) => g.appendChild(shot(im)));
+    s.appendChild(g);
+    root.appendChild(s);
+  }
+
+  const prov = el("div", "sec");
+  prov.appendChild(el("h3", null, "제출"));
+  const pdl = el("dl", "dl");
+  const p2 = (a, b) => { if (!b) return; pdl.appendChild(el("dt", null, a)); pdl.appendChild(el("dd", null, b)); };
+  p2("제출자", (r.submitterName || "") + (r.submitterLab ? " · " + r.submitterLab : ""));
+  p2("연락처", r.submitterEmail);
+  p2("등록일", fmtDate(r.createdAt));
+  if (r.updatedAt && r.updatedAt !== r.createdAt) p2("최종 수정", fmtDate(r.updatedAt));
+  prov.appendChild(pdl);
+  root.appendChild(prov);
+
+  const confirmSec = el("div", "sec");
+  confirmSec.id = "confirm-sec";
+  confirmSec.appendChild(el("h3", null, "재현 확인"));
+  confirmSec.appendChild(el("p", "prose", "같은 조건에서 같은 결과를 얻었다면 남겨 주세요. 확인이 쌓일수록 그 조건은 더 확실해집니다."));
+  root.appendChild(confirmSec);
+
+  const actions = el("div", "detail-actions");
+  const cBtn = el("button", "btn btn-primary", "나도 같은 결과를 얻었습니다");
+  cBtn.addEventListener("click", () => addConfirm(r, cBtn));
+  actions.appendChild(cBtn);
+
+  const copy = el("button", "btn", "요약 복사");
+  copy.addEventListener("click", () => copySummary(r, copy));
+  actions.appendChild(copy);
+
+  const mine = state.uid && r.submitterId === state.uid;
+  if (mine || state.canEdit) {
+    const ed = el("button", "btn", "수정");
+    ed.addEventListener("click", () => openForm(r.id));
+    actions.appendChild(ed);
+    const del = el("button", "btn btn-danger", "삭제");
+    del.addEventListener("click", () => removeRecord(r, del));
+    actions.appendChild(del);
+  }
+  root.appendChild(actions);
+
+  loadConfirms(r.id, confirmSec);
+}
+
+function shot(im) {
+  const fig = el("figure", "shot");
+  const img = el("img");
+  img.alt = im.caption || "첨부 데이터";
+  img.loading = "lazy";
+  if (im.kind === "asset" && im.id) {
+    img.src = "/_blob/" + im.id;
+    fig.appendChild(img);
+  } else if (im.kind === "inline" && im.doc) {
+    const ph = el("div", "miss", "불러오는 중…");
+    fig.appendChild(ph);
+    if (state.db) {
+      state.db.doc("images/" + im.doc).get().then((s) => {
+        const d = s.exists && s.data();
+        if (d && d.dataUrl) { img.src = d.dataUrl; fig.replaceChild(img, ph); }
+        else ph.textContent = "이미지를 찾을 수 없습니다";
+      }).catch(() => { ph.textContent = "이미지를 불러오지 못했습니다"; });
+    } else ph.textContent = "이미지를 불러오지 못했습니다";
+  } else {
+    fig.appendChild(el("div", "miss", "이미지를 찾을 수 없습니다"));
+  }
+  img.addEventListener("error", () => {
+    if (fig.contains(img)) fig.replaceChild(el("div", "miss", "이미지를 불러오지 못했습니다 (조직 외부 뷰어에게는 보이지 않을 수 있습니다)"), img);
+  });
+  if (im.caption) fig.appendChild(el("figcaption", null, im.caption));
+  return fig;
+}
+
+async function loadConfirms(rid, sec) {
+  if (!state.db) return;
+  let snap;
+  try { snap = await state.db.collection("records/" + rid + "/confirms").get(); }
+  catch (e) { return; }
+  const ul = el("ul", "confirm-list");
+  snap.docs.forEach((d) => {
+    const c = d.data() || {};
+    const li = el("li");
+    if (c.note) li.appendChild(el("div", "prose", c.note));
+    li.appendChild(el("div", "who", (c.name || "") + (c.lab ? " · " + c.lab : "") + " · " + fmtDate(c.at)));
+    ul.appendChild(li);
+  });
+  if (snap.size) sec.appendChild(ul);
+  else sec.appendChild(el("p", "who", "아직 확인 기록이 없습니다."));
+
+  // Keep the denormalised count on the record honest whenever anyone reads it.
+  const r = state.records.find((x) => x.id === rid);
+  if (r && (r.confirmCount || 0) !== snap.size) {
+    state.db.doc("records/" + rid).update({ confirmCount: snap.size }).catch(() => {});
+  }
+}
+
+function addConfirm(r, btn) {
+  if (!state.db || !state.uid) { alertInline(btn, "로그인 상태에서만 남길 수 있습니다."); return; }
+  openConfirmForm();
+}
+
+// The artifact viewer suppresses window.prompt(), so the confirmation form
+// is built into the page.
+function openConfirmForm() {
+  const sec = $("#confirm-sec");
+  if (!sec || sec.querySelector("form")) return;
+  const form = el("form");
+  form.style.marginTop = "12px";
+  form.innerHTML =
+    '<div class="grid2">' +
+    '<div class="f"><label for="cf-name">이름<span class="req">*</span></label><input id="cf-name" required></div>' +
+    '<div class="f"><label for="cf-lab">연구실<span class="req">*</span></label><input id="cf-lab" required></div>' +
+    '<div class="f span2"><label for="cf-note">조건이 달랐다면 적어 주세요</label><textarea id="cf-note" placeholder="예: 같은 clone의 다른 lot(GR3401122-1)에서도 동일하게 신호 없음. 고정은 2% PFA 4 h."></textarea></div>' +
+    '</div><div class="form-actions"><button class="btn btn-primary" type="submit">확인 남기기</button><button class="btn" type="button" data-cancel>취소</button></div>';
+  sec.appendChild(form);
+  $("#cf-name", form).value = recall("name");
+  $("#cf-lab", form).value = recall("lab");
+  form.querySelector("[data-cancel]").addEventListener("click", () => form.remove());
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = $("#cf-name", form).value.trim();
+    const lab = $("#cf-lab", form).value.trim();
+    if (!name || !lab) return;
+    remember("name", name); remember("lab", lab);
+    const rid = state.current;
+    try {
+      await state.db.doc("records/" + rid + "/confirms/" + state.uid).set({
+        name, lab, note: $("#cf-note", form).value.trim(), at: new Date().toISOString(),
+      });
+      openDetail(rid);
+    } catch (err) {
+      form.appendChild(el("p", "err", "저장하지 못했습니다 (" + err.code + ")."));
+    }
+  });
+  $("#cf-name", form).focus();
+  return null;
+}
+
+async function copySummary(r, btn) {
+  const lines = [];
+  lines.push("[" + ((TYPES[r.type] || {}).label || r.type) + " / " + (OUTCOMES[r.outcome] || {}).label + "] " + r.title);
+  if (r.summary) lines.push(r.summary);
+  lines.push("");
+  (TYPES[r.type] || { fields: [] }).fields.concat(COMMON).forEach((fd) => {
+    const v = r[fd.k];
+    if (v && (!Array.isArray(v) || v.length)) lines.push("- " + fd.label + ": " + (Array.isArray(v) ? v.join(", ") : v));
+  });
+  if (r.detail) { lines.push("", "상세: " + r.detail); }
+  if (r.resolution) lines.push("", "대안: " + r.resolution);
+  if (r.refs) lines.push("", "참고: " + r.refs);
+  lines.push("", "제출: " + (r.submitterName || "") + " (" + (r.submitterLab || "") + ") " + fmtDate(r.createdAt));
+  const text = lines.join("\n");
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.textContent = "복사했습니다";
+    setTimeout(() => { btn.textContent = "요약 복사"; }, 1800);
+  } catch (e) {
+    const ta = el("textarea");
+    ta.value = text;
+    ta.style.cssText = "width:100%;min-height:200px;margin-top:10px";
+    btn.parentElement.parentElement.appendChild(ta);
+    ta.select();
+  }
+}
+
+async function removeRecord(r, btn) {
+  if (btn.dataset.armed !== "1") {
+    btn.dataset.armed = "1";
+    btn.textContent = "한 번 더 누르면 삭제됩니다";
+    setTimeout(() => { btn.dataset.armed = "0"; btn.textContent = "삭제"; }, 4000);
+    return;
+  }
+  btn.disabled = true;
+  try {
+    for (const im of (r.images || [])) {
+      if (im.kind === "asset" && im.id && state.assets) await state.assets.delete(im.id).catch(() => {});
+      if (im.kind === "inline" && im.doc) await state.db.doc("images/" + im.doc).delete().catch(() => {});
+    }
+    await state.db.doc("records/" + r.id).delete();
+    state.current = null;
+    show("browse");
+  } catch (e) {
+    btn.disabled = false;
+    alertInline(btn, "삭제하지 못했습니다 (" + e.code + ").");
+  }
+}
+
+function alertInline(btn, msg) {
+  const p = el("p", "err", msg);
+  btn.parentElement.appendChild(p);
+  setTimeout(() => p.remove(), 5000);
+}
+
+/* ------------------------------------------------------------------ *
+ * Form
+ * ------------------------------------------------------------------ */
+
+let pending = []; // {blob, dataUrl, caption, existing?}
+
+function openForm(editId) {
+  const r = editId ? state.records.find((x) => x.id === editId) : null;
+  pending = r ? (r.images || []).map((im) => ({ existing: im, caption: im.caption || "" })) : [];
+  const root = $("#view-form");
+  root.innerHTML = "";
+  show("form");
+
+  const back = el("button", "backlink", "← 취소하고 목록으로");
+  back.addEventListener("click", () => show(state.current ? "detail" : "browse"));
+  root.appendChild(back);
+  root.appendChild(el("h2", null, r ? "기록 수정" : "새 기록"));
+  root.appendChild(el("p", "tagline", "조건을 특정할 수 있을 만큼만 적으면 충분합니다. 빈 칸으로 남겨도 저장됩니다."));
+
+  const form = el("form");
+  form.id = "rec-form";
+  form.noValidate = true;
+  root.appendChild(form);
+
+  // --- 1. 유형 & 결과
+  form.appendChild(head("무엇에 대한 기록인가요"));
+  const g0 = el("div", "grid2");
+  g0.appendChild(field({ k: "type", label: "기록 유형", type: "select", req: true, opts: Object.keys(TYPES).map((k) => ({ v: k, t: TYPES[k].label })) }, r ? r.type : ""));
+  g0.appendChild(field({ k: "outcome", label: "결과", type: "select", req: true, opts: Object.keys(OUTCOMES).map((k) => ({ v: k, t: OUTCOMES[k].label })) }, r ? r.outcome : ""));
+  form.appendChild(g0);
+  const blurb = el("p", "hint");
+  blurb.id = "type-blurb";
+  blurb.style.cssText = "color:var(--ink-3);font-size:13px;margin-top:8px";
+  form.appendChild(blurb);
+
+  const g1 = el("div", "grid2");
+  g1.style.marginTop = "14px";
+  g1.appendChild(field({ k: "title", label: "제목", req: true, span2: true, ph: "한 줄로. 예: anti-IBA1 (ab178846) PFA 과고정 절편에서 신호 없음" }, r ? r.title : ""));
+  g1.appendChild(field({ k: "summary", label: "핵심 요약", req: true, type: "textarea", span2: true, ph: "두세 문장. 무엇을, 어떤 조건에서, 어떻게 했더니 어떤 결과였는지.", hint: "다른 사람이 검색 결과에서 가장 먼저 읽는 문장입니다." }, r ? r.summary : ""));
+  form.appendChild(g1);
+
+  // --- 2. 유형별 조건
+  form.appendChild(head("조건", "type-fields-head"));
+  const typeBox = el("div", "grid2");
+  typeBox.id = "type-fields";
+  form.appendChild(typeBox);
+
+  const g2 = el("div", "grid2");
+  g2.style.marginTop = "14px";
+  COMMON.forEach((fd) => g2.appendChild(field(fd, r ? r[fd.k] : "")));
+  form.appendChild(g2);
+
+  // --- 3. 서술
+  form.appendChild(head("기록"));
+  const g3 = el("div", "grid2");
+  g3.appendChild(field({ k: "detail", label: "상세 기록", type: "textarea", span2: true, ph: "관찰한 내용을 그대로. 대조군은 어땠는지, 몇 번 반복했는지 포함하면 좋습니다." }, r ? r.detail : ""));
+  g3.appendChild(field({ k: "tried", label: "시도한 조건", type: "textarea", span2: true, ph: "바꿔 본 변수와 범위. 예: 희석 1:200~1:1000, 항원 부활 citrate/EDTA 모두 시험." }, r ? r.tried : ""));
+  g3.appendChild(field({ k: "resolution", label: "해결 / 대안", type: "textarea", span2: true, ph: "통한 방법이 있으면 적어 주세요. 없으면 비워 두셔도 됩니다 — 그것도 정보입니다." }, r ? r.resolution : ""));
+  g3.appendChild(field({ k: "refs", label: "참고 문헌 / 링크", span2: true, ph: "PMID 또는 DOI. 예: PMID 29472486, doi:10.1038/s41586-021-03563-7" }, r ? r.refs : ""));
+  g3.appendChild(field({ k: "tags", label: "태그", span2: true, ph: "쉼표로 구분. 예: microglia, IHC, tamoxifen", hint: "검색에 쓰입니다." }, r ? (r.tags || []).join(", ") : ""));
+  form.appendChild(g3);
+
+  // --- 4. 이미지
+  form.appendChild(head("데이터 첨부 (선택)"));
+  form.appendChild(fileBox());
+
+  // --- 5. 제출자
+  form.appendChild(head("제출자"));
+  form.appendChild(el("p", "notice", "등록된 기록은 제출자 이름·연구실과 함께 공개 웹사이트에 게시됩니다. 연락처 이메일은 공개되지 않으며 이 아카이브 안에서만 보입니다."));
+  const g4 = el("div", "grid2");
+  g4.appendChild(field({ k: "submitterName", label: "이름", req: true, ph: "예: 김은하" }, r ? r.submitterName : recall("name")));
+  g4.appendChild(field({ k: "submitterLab", label: "연구실", req: true, ph: "예: 신경면역학 연구실 (고려대 의과대학)" }, r ? r.submitterLab : recall("lab")));
+  g4.appendChild(field({ k: "submitterEmail", label: "연락처 이메일", req: true, span2: true, ph: "후속 질문을 받을 주소", hint: "공개 사이트에는 게시되지 않습니다. 아카이브 구성원과 운영자만 확인합니다." }, r ? r.submitterEmail : recall("email")));
+  form.appendChild(g4);
+
+  const actions = el("div", "form-actions");
+  const save = el("button", "btn btn-primary", r ? "수정 저장" : "아카이브에 등록");
+  save.type = "submit";
+  actions.appendChild(save);
+  const cancel = el("button", "btn", "취소");
+  cancel.type = "button";
+  cancel.addEventListener("click", () => show(state.current ? "detail" : "browse"));
+  actions.appendChild(cancel);
+  const status = el("span", "err");
+  status.id = "form-status";
+  actions.appendChild(status);
+  form.appendChild(actions);
+
+  const typeSel = $("#f-type", form);
+  typeSel.addEventListener("change", () => renderTypeFields(typeSel.value, r));
+  renderTypeFields(typeSel.value, r);
+
+  form.addEventListener("submit", (e) => { e.preventDefault(); submitForm(r, save, status); });
+}
+
+function head(text, id) {
+  const h = el("div", "fs-head", text);
+  if (id) h.id = id;
+  return h;
+}
+
+function renderTypeFields(type, r) {
+  const box = $("#type-fields");
+  box.innerHTML = "";
+  const t = TYPES[type];
+  $("#type-blurb").textContent = t ? t.blurb : "";
+  const headEl = $("#type-fields-head");
+  if (headEl) headEl.textContent = t ? t.label + " 조건" : "조건";
+  if (!t) return;
+  t.fields.forEach((fd) => box.appendChild(field(fd, r && r.type === type ? r[fd.k] : "")));
+}
+
+function field(fd, val) {
+  const wrap = el("div", "f" + (fd.span2 || fd.type === "textarea" || fd.type === "multi" ? " span2" : ""));
+  const id = "f-" + fd.k;
+  const lab = el("label");
+  lab.htmlFor = id;
+  lab.appendChild(document.createTextNode(fd.label));
+  if (fd.req) lab.appendChild(el("span", "req", "*"));
+  wrap.appendChild(lab);
+
+  let input;
+  if (fd.type === "textarea") {
+    input = el("textarea");
+    input.value = val || "";
+  } else if (fd.type === "select") {
+    input = el("select");
+    input.appendChild(new Option("선택하세요", ""));
+    (fd.opts || []).forEach((o) => {
+      const v = typeof o === "string" ? o : o.v;
+      const t = typeof o === "string" ? o : o.t;
+      input.appendChild(new Option(t, v));
+    });
+    input.value = val || "";
+  } else if (fd.type === "multi") {
+    input = el("div", "optgrid");
+    const chosen = Array.isArray(val) ? val : [];
+    (fd.opts || []).forEach((o, i) => {
+      const l = el("label");
+      const cb = el("input");
+      cb.type = "checkbox";
+      cb.value = o;
+      cb.id = id + "-" + i;
+      cb.checked = chosen.indexOf(o) !== -1;
+      cb.dataset.multi = fd.k;
+      l.appendChild(cb);
+      l.appendChild(document.createTextNode(o));
+      input.appendChild(l);
+    });
+    input.id = id;
+    wrap.appendChild(input);
+    if (fd.hint) wrap.appendChild(el("span", "hint", fd.hint));
+    return wrap;
+  } else {
+    input = el("input");
+    input.type = "text";
+    input.value = val || "";
+  }
+  input.id = id;
+  input.name = fd.k;
+  if (fd.ph) input.placeholder = fd.ph;
+  if (fd.mono) input.classList.add("mono");
+  wrap.appendChild(input);
+  if (fd.hint) wrap.appendChild(el("span", "hint", fd.hint));
+  return wrap;
+}
+
+function fileBox() {
+  const box = el("div", "filebox");
+  box.appendChild(el("p", "hint", "FACS plot, blot, 염색 이미지 등. 업로드 전에 긴 변 1400 px로 축소해 저장합니다. 파일당 5 MB 이하, 최대 4장."));
+  const inp = el("input");
+  inp.type = "file";
+  inp.id = "f-images";
+  inp.accept = "image/png,image/jpeg,image/webp";
+  inp.multiple = true;
+  inp.style.marginTop = "10px";
+  box.appendChild(inp);
+  const thumbs = el("div", "thumbs");
+  thumbs.id = "thumbs";
+  box.appendChild(thumbs);
+  inp.addEventListener("change", async () => {
+    for (const file of Array.from(inp.files || [])) {
+      if (pending.length >= 4) break;
+      if (file.size > 5 * 1024 * 1024) continue;
+      try {
+        const { blob, dataUrl } = await downscale(file);
+        pending.push({ blob, dataUrl, caption: "" });
+      } catch (e) { /* unreadable image */ }
+    }
+    inp.value = "";
+    renderThumbs();
+  });
+  renderThumbs();
+  return box;
+}
+
+function renderThumbs() {
+  const t = $("#thumbs");
+  if (!t) return;
+  t.innerHTML = "";
+  pending.forEach((p, i) => {
+    const d = el("div", "thumb");
+    const img = el("img");
+    img.alt = "첨부 미리보기";
+    if (p.dataUrl) img.src = p.dataUrl;
+    else if (p.existing && p.existing.kind === "asset") img.src = "/_blob/" + p.existing.id;
+    else if (p.existing && p.existing.kind === "inline" && state.db) {
+      state.db.doc("images/" + p.existing.doc).get().then((s) => {
+        const dd = s.exists && s.data();
+        if (dd && dd.dataUrl) img.src = dd.dataUrl;
+      }).catch(() => {});
+    }
+    d.appendChild(img);
+    const cap = el("input");
+    cap.type = "text";
+    cap.id = "cap-" + i;
+    cap.placeholder = "설명 (예: 좌 WT, 우 KO. 동일 노출)";
+    cap.value = p.caption || "";
+    cap.addEventListener("input", () => { p.caption = cap.value; });
+    d.appendChild(cap);
+    const rm = el("button", null, "제거");
+    rm.type = "button";
+    rm.addEventListener("click", () => { pending.splice(i, 1); renderThumbs(); });
+    d.appendChild(rm);
+    t.appendChild(d);
+  });
+}
+
+/* Downscale in the browser: keeps db documents and the artifact's asset
+   quota from filling up with 12-megapixel microscope exports. */
+async function downscale(file, maxDim = 1400, quality = 0.82) {
+  const bmp = await createImageBitmap(file);
+  const scale = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
+  const w = Math.max(1, Math.round(bmp.width * scale));
+  const h = Math.max(1, Math.round(bmp.height * scale));
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#ffffff";           // JPEG has no alpha; keep PNG transparency white
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(bmp, 0, 0, w, h);
+  if (bmp.close) bmp.close();
+  const blob = await new Promise((res) => c.toBlob(res, "image/jpeg", quality));
+  const dataUrl = c.toDataURL("image/jpeg", quality);
+  // db documents cap at 256 KiB; step down rather than fail at save time.
+  if (dataUrl.length > 200000 && maxDim > 700) return downscale(file, Math.round(maxDim * 0.72), quality - 0.06);
+  return { blob, dataUrl };
+}
+
+function collect(form) {
+  const out = {};
+  form.querySelectorAll("input[type=text], textarea, select").forEach((n) => {
+    if (!n.name) return;
+    out[n.name] = n.value.trim();
+  });
+  const multi = {};
+  form.querySelectorAll("input[type=checkbox][data-multi]").forEach((n) => {
+    if (!multi[n.dataset.multi]) multi[n.dataset.multi] = [];
+    if (n.checked) multi[n.dataset.multi].push(n.value);
+  });
+  Object.assign(out, multi);
+  return out;
+}
+
+async function submitForm(existing, btn, status) {
+  const form = $("#rec-form");
+  status.className = "err";
+  status.textContent = "";
+
+  const data = collect(form);
+  data.type = $("#f-type").value;
+  data.outcome = $("#f-outcome").value;
+
+  const required = ["type", "outcome", "title", "summary", "submitterName", "submitterLab", "submitterEmail"]
+    .concat((TYPES[data.type] || { fields: [] }).fields.filter((x) => x.req).map((x) => x.k));
+  const missing = required.filter((k) => !data[k]);
+  if (missing.length) {
+    const first = $("#f-" + missing[0]);
+    status.textContent = "필수 항목이 비어 있습니다: " + missing.map((k) => labelOf(k, data.type)).join(", ");
+    if (first) { first.focus(); first.scrollIntoView({ block: "center" }); }
+    return;
+  }
+  if (!state.db) { status.textContent = "저장소에 연결되어 있지 않습니다. 로그인 후 새로고침해 주세요."; return; }
+
+  data.tags = (data.tags || "").split(",").map((s) => s.trim()).filter(Boolean);
+  remember("name", data.submitterName);
+  remember("lab", data.submitterLab);
+  remember("email", data.submitterEmail);
+
+  btn.disabled = true;
+  status.className = "ok";
+  status.textContent = "저장하는 중…";
+
+  const now = new Date().toISOString();
+  const id = existing ? existing.id : (crypto.randomUUID ? crypto.randomUUID() : "r" + Date.now() + Math.random().toString(36).slice(2, 8));
+
+  // Images first: an id written into a record must already resolve.
+  const images = [];
+  try {
+    for (const p of pending) {
+      if (p.existing) { images.push(Object.assign({}, p.existing, { caption: p.caption || "" })); continue; }
+      // Inline (db) storage first. Assets uploaded by Contributors are served
+      // only inside the owner's organization, so they break in the public
+      // mirror; db documents export cleanly and are readable by any signed-in
+      // viewer. Assets remain the fallback for when the db write is refused.
+      const docId = (crypto.randomUUID ? crypto.randomUUID() : "i" + Date.now() + Math.random().toString(36).slice(2, 8));
+      let stored = false;
+      try {
+        await state.db.doc("images/" + docId).set({ dataUrl: p.dataUrl, record: id, at: now });
+        images.push({ kind: "inline", doc: docId, caption: p.caption || "" });
+        stored = true;
+      } catch (e) {
+        if (!state.assets) throw e;
+      }
+      if (!stored) {
+        const up = await state.assets.upload(p.blob, { type: "image/jpeg" });
+        images.push({ kind: "asset", id: up.id, caption: p.caption || "" });
+      }
+    }
+  } catch (e) {
+    btn.disabled = false;
+    status.className = "err";
+    status.textContent = "이미지를 저장하지 못했습니다 (" + (e.code || e.message) + "). 이미지를 빼고 다시 시도해 보세요.";
+    return;
+  }
+
+  const body = Object.assign({}, data, {
+    images,
+    submitterId: state.uid || null,
+    createdAt: existing ? existing.createdAt : now,
+    updatedAt: now,
+    confirmCount: existing ? (existing.confirmCount || 0) : 0,
+  });
+  delete body._hay;
+
+  try {
+    await state.db.doc("records/" + id).set(body);
+    pending = [];
+    state.current = id;
+    openDetail(id);
+  } catch (e) {
+    btn.disabled = false;
+    status.className = "err";
+    status.textContent = e.code === "invalid_argument"
+      ? "저장 권한이 없습니다. 이 아카이브에 기여자(Contributor) 이상으로 초대되어 있어야 합니다. 운영자에게 문의해 주세요."
+      : "저장하지 못했습니다 (" + e.code + ").";
+  }
+}
+
+function labelOf(k, type) {
+  const common = { type: "기록 유형", outcome: "결과", title: "제목", summary: "핵심 요약", submitterName: "이름", submitterLab: "연구실", submitterEmail: "연락처 이메일" };
+  if (common[k]) return common[k];
+  const fd = (TYPES[type] || { fields: [] }).fields.find((x) => x.k === k);
+  return fd ? fd.label : k;
+}
+
+/* ------------------------------------------------------------------ *
+ * Export (운영자용)
+ * ------------------------------------------------------------------ */
+
+async function exportCsv() {
+  const cols = ["id", "type", "outcome", "title", "summary", "species", "tissue", "detail", "tried", "resolution", "refs", "tags", "submitterName", "submitterLab", "submitterEmail", "createdAt", "updatedAt", "confirmCount"];
+  const extra = [];
+  Object.keys(TYPES).forEach((t) => TYPES[t].fields.forEach((fd) => { if (extra.indexOf(fd.k) === -1) extra.push(fd.k); }));
+  const all = cols.concat(extra);
+  const q = (v) => {
+    const s = Array.isArray(v) ? v.join("; ") : (v == null ? "" : String(v));
+    return '"' + s.replace(/"/g, '""') + '"';
+  };
+  const rows = [all.join(",")].concat(state.records.map((r) => all.map((c) => q(r[c])).join(",")));
+  const csv = "﻿" + rows.join("\r\n");
+  const name = "negative-data-archive-" + new Date().toISOString().slice(0, 10) + ".csv";
+  try {
+    const dl = await claude.use("downloads");
+    if (dl) { await dl.save({ filename: name, data: csv }); return; }
+    throw new Error("no downloads");
+  } catch (e) {
+    try { await navigator.clipboard.writeText(csv); showNotice("파일 저장을 사용할 수 없어 CSV를 클립보드에 복사했습니다."); }
+    catch (e2) { showNotice("CSV를 내보내지 못했습니다."); }
+  }
+}
+</script>
