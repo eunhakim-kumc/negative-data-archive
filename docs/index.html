@@ -11,149 +11,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%230C6B61'/%3E%3Cpath d='M8 11h16M8 16h16M8 21h9' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
-<style>
-/* Layout: sticky filter rail over a dense record index; a record detail
-   replaces the index in place and owns a #hash so it can be cited. */
-:root{
-  --paper:#F6F8F8; --surface:#FFFFFF; --surface-2:#EFF3F3;
-  --ink:#14181B; --ink-2:#4E585E; --ink-3:#7C878D;
-  --line:#DCE3E4; --line-2:#C3CDCF;
-  --accent:#0C6B61; --accent-ink:#FFFFFF; --accent-soft:#E0EFEC;
-  --o-dead:#AE3119; --o-cond:#9A6500; --o-repro:#65479A; --o-nodiff:#36689E;
-  --o-dead-soft:#F7E6E2; --o-cond-soft:#F7EEDC; --o-repro-soft:#EDE8F7; --o-nodiff-soft:#E3ECF5;
-  --sans:"IBM Plex Sans KR","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
-  --gut-l:max(16px,env(safe-area-inset-left,0px));
-  --gut-r:max(16px,env(safe-area-inset-right,0px));
-  color-scheme:light;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --paper:#111517; --surface:#181D1F; --surface-2:#1F2528;
-    --ink:#E7ECED; --ink-2:#9BA6AB; --ink-3:#77838A;
-    --line:#2A3135; --line-2:#3A4348;
-    --accent:#4FB5A6; --accent-ink:#0B1A18; --accent-soft:#16312D;
-    --o-dead:#E5836C; --o-cond:#D4A449; --o-repro:#A890DD; --o-nodiff:#79A9DB;
-    --o-dead-soft:#32201C; --o-cond-soft:#302715; --o-repro-soft:#272036; --o-nodiff-soft:#1C2731;
-    color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --paper:#111517; --surface:#181D1F; --surface-2:#1F2528;
-  --ink:#E7ECED; --ink-2:#9BA6AB; --ink-3:#77838A;
-  --line:#2A3135; --line-2:#3A4348;
-  --accent:#4FB5A6; --accent-ink:#0B1A18; --accent-soft:#16312D;
-  --o-dead:#E5836C; --o-cond:#D4A449; --o-repro:#A890DD; --o-nodiff:#79A9DB;
-  --o-dead-soft:#32201C; --o-cond-soft:#302715; --o-repro-soft:#272036; --o-nodiff-soft:#1C2731;
-  color-scheme:dark;
-}
-
-*{box-sizing:border-box}
-html,body{margin:0}
-img{max-width:100%}
-[hidden]{display:none!important}
-body{
-  background:var(--paper); color:var(--ink);
-  font-family:var(--sans); font-size:15px; line-height:1.65;
-  -webkit-font-smoothing:antialiased;
-}
-h1,h2,h3{margin:0;text-wrap:balance;line-height:1.3;font-weight:700;letter-spacing:-0.01em}
-p{margin:0}
-button,input,select{font:inherit;color:inherit}
-a{color:var(--accent)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
-.wrap{width:100%;max-width:1120px;margin-inline:auto;padding-left:var(--gut-l);padding-right:var(--gut-r)}
-.mono{font-family:var(--mono);font-size:0.92em;letter-spacing:-0.01em}
-.tnum{font-variant-numeric:tabular-nums}
-
-.masthead{background:var(--surface);border-bottom:1px solid var(--line)}
-.masthead .wrap{padding-block:26px 22px;display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between}
-.brand{min-width:0;max-width:62ch}
-.eyebrow{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
-.masthead h1{font-size:27px;margin-top:6px}
-.tagline{color:var(--ink-2);font-size:14px;margin-top:8px}
-.mast-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-
-.btn{border:1px solid var(--line-2);background:var(--surface);color:var(--ink);
-  padding:8px 14px;border-radius:4px;cursor:pointer;font-weight:500;font-size:14px;
-  text-decoration:none;display:inline-block;transition:background .12s ease}
-.btn:hover{background:var(--surface-2)}
-.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.btn-primary:hover{filter:brightness(1.08);background:var(--accent)}
-
-.toolbar{position:sticky;top:0;z-index:30;background:var(--paper);border-bottom:1px solid var(--line)}
-.toolbar .wrap{padding-block:12px}
-.search-row{display:flex;gap:8px;align-items:center}
-#q{flex:1;min-width:0;padding:9px 12px;border:1px solid var(--line-2);border-radius:4px;background:var(--surface)}
-#sort{padding:9px 10px;border:1px solid var(--line-2);border-radius:4px;background:var(--surface)}
-.chiprow{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center}
-.chiprow .rowlabel{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:700;margin-right:2px}
-.chip{border:1px solid var(--line-2);background:transparent;color:var(--ink-2);
-  padding:4px 11px;border-radius:999px;cursor:pointer;font-size:13px;line-height:1.5}
-.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:500}
-.chip .n{font-variant-numeric:tabular-nums;opacity:.7;margin-left:5px;font-size:12px}
-
-main{padding-block:22px 56px}
-.counts{color:var(--ink-3);font-size:13px;margin-bottom:12px}
-.list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
-.card{position:relative;background:var(--surface);border:1px solid var(--line);
-  border-radius:4px;padding:14px 16px 14px 20px;cursor:pointer;min-width:0;transition:border-color .12s ease}
-.card:hover{border-color:var(--line-2)}
-.card::before{content:"";position:absolute;left:0;top:-1px;bottom:-1px;width:4px;border-radius:4px 0 0 4px;background:var(--stripe,var(--line-2))}
-.card-top{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
-.card h3{font-size:16px;min-width:0;flex:1}
-.card .summary{color:var(--ink-2);font-size:14px;margin-top:6px;min-width:0}
-.meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:12.5px;color:var(--ink-3)}
-.meta .sep{color:var(--line-2)}
-.tag{background:var(--surface-2);border:1px solid var(--line);border-radius:3px;padding:1px 7px;font-size:12px;color:var(--ink-2)}
-.badge{font-size:12px;font-weight:500;padding:2px 9px;border-radius:3px;white-space:nowrap}
-.b-type{background:var(--surface-2);color:var(--ink-2);border:1px solid var(--line)}
-.o-dead{background:var(--o-dead-soft);color:var(--o-dead)}
-.o-cond{background:var(--o-cond-soft);color:var(--o-cond)}
-.o-repro{background:var(--o-repro-soft);color:var(--o-repro)}
-.o-nodiff{background:var(--o-nodiff-soft);color:var(--o-nodiff)}
-.confirms{color:var(--accent);font-weight:500}
-
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:22px 20px}
-.panel h2{font-size:18px}
-.panel p{color:var(--ink-2);margin-top:8px;max-width:62ch}
-
-.detail{max-width:860px}
-.backlink{background:none;border:0;color:var(--accent);cursor:pointer;padding:0;font-size:14px;font-weight:500;margin-bottom:14px}
-.detail h2{font-size:23px;margin-top:10px}
-.detail-badges{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.lede{font-size:16px;margin-top:14px;background:var(--accent-soft);border-left:3px solid var(--accent);padding:12px 14px;border-radius:0 3px 3px 0}
-.dl{display:grid;grid-template-columns:minmax(120px,170px) 1fr;margin:0;border-top:1px solid var(--line)}
-.dl>dt{padding:9px 12px 9px 0;border-bottom:1px solid var(--line);color:var(--ink-3);font-size:13px;font-weight:500}
-.dl>dd{padding:9px 0 9px 12px;border-bottom:1px solid var(--line);margin:0;min-width:0;overflow-wrap:anywhere;white-space:pre-wrap}
-.sec{margin-top:26px}
-.sec h3{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px}
-.prose{white-space:pre-wrap;overflow-wrap:anywhere}
-.shots{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
-.shot{border:1px solid var(--line);border-radius:3px;overflow:hidden;background:var(--surface-2);min-width:0}
-.shot img{display:block;width:100%;height:auto;max-height:520px;object-fit:contain;background:var(--surface-2)}
-.shot figcaption{padding:7px 10px;font-size:12.5px;color:var(--ink-2);border-top:1px solid var(--line)}
-.confirm-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-.confirm-list li{border:1px solid var(--line);border-radius:3px;padding:9px 12px;background:var(--surface);font-size:14px}
-.confirm-list .who{color:var(--ink-3);font-size:12.5px}
-.cite{background:var(--surface-2);border:1px solid var(--line);border-radius:3px;padding:11px 13px;font-family:var(--mono);font-size:12.5px;overflow-wrap:anywhere;color:var(--ink-2)}
-.detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
-
-footer{border-top:1px solid var(--line);background:var(--surface)}
-footer .wrap{padding-block:24px 34px;font-size:13px;color:var(--ink-3)}
-footer p+p{margin-top:8px}
-footer h2{font-size:14px;color:var(--ink);margin-bottom:8px}
-.skel{height:76px;border-radius:4px;background:var(--surface);border:1px solid var(--line)}
-.notice{border:1px solid var(--line);border-left:3px solid var(--o-cond);background:var(--surface);border-radius:0 3px 3px 0;padding:11px 14px;font-size:13.5px;color:var(--ink-2);margin-bottom:16px}
-
-@media (max-width:620px){
-  .masthead h1{font-size:22px}
-  .dl{grid-template-columns:1fr}
-  .dl>dt{padding-bottom:0;border-bottom:0}
-  .dl>dd{padding-left:0;padding-top:2px}
-}
-@media (prefers-reduced-motion: reduce){*{transition:none!important}}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -165,7 +23,7 @@ footer h2{font-size:14px;color:var(--ink);margin-bottom:8px}
       <p class="tagline">작동하지 않은 항체, 새는 Cre, 재현되지 않은 프로토콜, 차이가 없던 결과. 논문에 실리지 않는 이 기록들이 다음 사람의 몇 달을 아낍니다.</p>
     </div>
     <div class="mast-actions">
-      <a class="btn btn-primary" id="contribute" href="#contribute-info">기록 기여하기</a>
+      <a class="btn btn-primary" href="submit.html">기록 기여하기</a>
     </div>
   </div>
 </header>
@@ -200,55 +58,16 @@ footer h2{font-size:14px;color:var(--ink);margin-bottom:8px}
 <footer>
   <div class="wrap" id="contribute-info">
     <h2>기록 기여하기</h2>
-    <p>고려대학교 의과대학 BK21 의과학과 구성원은 내부 제출 시스템에서 직접 등록할 수 있습니다. 외부 연구자의 기여나 기존 기록에 대한 재현 확인은 운영자에게 연락해 주세요.</p>
+    <p>고려대학교 구성원은 <a href="submit.html">제출 시스템</a>에서 학교 메일 주소로 로그인해 직접 등록할 수 있습니다. 비밀번호는 없고, 메일로 받은 링크를 누르면 바로 들어갑니다. 교외 연구자의 기여나 기존 기록에 대한 문의는 운영자에게 연락해 주세요.</p>
     <p><strong>기록 원칙</strong> — 조건을 특정할 수 있을 만큼 적습니다. "이 항체는 안 됩니다"가 아니라 "이 lot을, 이 고정 조건에서, 이 조직에 썼을 때 안 됩니다". 음성 데이터는 양성 대조가 살아 있을 때만 의미를 가집니다.</p>
     <p><strong>읽는 분께</strong> — 각 기록은 특정 조건에서의 단일 관찰입니다. 일반적인 결론이 아니며, 다른 조건에서는 다르게 동작할 수 있습니다. 중요한 결정 전에는 기록된 조건을 직접 확인하시기 바랍니다.</p>
     <p id="synced"></p>
   </div>
 </footer>
 
+<script src="schema.js"></script>
 <script>
 "use strict";
-
-/* Field schema. Must stay in step with the submission app; the sync script
-   writes records straight through, so a field added there appears here only
-   once its label is listed below. */
-
-const OUTCOMES = {
-  dead:   { label: "작동 안 함",      cls: "o-dead",   stripe: "var(--o-dead)" },
-  cond:   { label: "조건부 작동",     cls: "o-cond",   stripe: "var(--o-cond)" },
-  repro:  { label: "재현 실패",       cls: "o-repro",  stripe: "var(--o-repro)" },
-  nodiff: { label: "유의한 차이 없음", cls: "o-nodiff", stripe: "var(--o-nodiff)" },
-};
-
-const TYPES = {
-  antibody: { label: "항체", fields: [
-    ["target", "표적 항원 / 단백질"], ["vendor", "제조사"], ["catalog", "Catalog #", 1],
-    ["clone", "Clone", 1], ["lot", "Lot #", 1], ["hostIso", "Host / Isotype"],
-    ["conjugate", "Conjugate / Fluorophore"], ["application", "적용 (Application)"],
-    ["dilution", "시험한 희석배수", 1], ["fixation", "고정 조건"],
-    ["retrieval", "항원 부활 (Antigen retrieval)"], ["block", "Blocking / Permeabilization"],
-    ["posControl", "양성 대조"],
-  ]},
-  mouse: { label: "마우스 라인 / Cre", fields: [
-    ["lineName", "라인 통칭"], ["nomenclature", "공식 명명 (Nomenclature)", 1], ["stockId", "Stock / MGI ID", 1],
-    ["background", "배경 계통"], ["driver", "Driver 종류"], ["reporter", "교배한 Reporter / floxed allele"],
-    ["induction", "유도 조건"], ["efficiency", "Recombination 효율"], ["leak", "Leaky 발현 부위 / 시점"],
-    ["genotyping", "유전형 판정 문제"], ["pheno", "배경 표현형"],
-  ]},
-  protocol: { label: "프로토콜 / 시약", fields: [
-    ["procedure", "프로토콜 / 수기 이름"], ["kitVendor", "키트 / 시약 제조사"], ["kitCatalog", "Catalog / Lot #", 1],
-    ["sourceRef", "따른 원 프로토콜 출처"], ["failedStep", "실패한 단계"],
-    ["conditions", "시험한 조건 범위"], ["alternative", "대안 / 해결 조건"],
-  ]},
-  null_result: { label: "실험 결과 (null result)", fields: [
-    ["hypothesis", "검정한 가설"], ["model", "모델 / 계통"], ["intervention", "처치 / 비교군"],
-    ["readout", "측정 지표 / 방법"], ["groups", "군 구성과 n수", 1], ["statTest", "통계 검정"],
-    ["statResult", "검정 결과", 1], ["powerNote", "검정력 / 해석상 한계"],
-  ]},
-};
-
-const COMMON = [["species", "종 / 세포"], ["tissue", "조직 / 시료"]];
 
 const state = { records: [], ready: false, q: "", type: "all", outcome: "all", sort: "new", current: null };
 
@@ -259,12 +78,7 @@ const el = (tag, cls, text) => {
   if (text != null) n.textContent = text;
   return n;
 };
-function fmtDate(iso) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (isNaN(d)) return "";
-  return d.getFullYear() + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + String(d.getDate()).padStart(2, "0");
-}
+const pageUrl = () => location.origin + location.pathname;
 
 buildChips();
 wireToolbar();
@@ -342,7 +156,7 @@ function filtered() {
     if (state.q && haystack(r).indexOf(state.q) === -1) return false;
     return true;
   });
-  if (state.sort === "confirm") out = out.slice().sort((a, b) => (b.confirmCount || 0) - (a.confirmCount || 0));
+  if (state.sort === "confirm") out = out.slice().sort((a, b) => (b.confirm_count || 0) - (a.confirm_count || 0));
   else if (state.sort === "title") out = out.slice().sort((a, b) => String(a.title).localeCompare(String(b.title), "ko"));
   return out;
 }
@@ -366,7 +180,11 @@ function render() {
     empty.hidden = false;
     const p = el("div", "panel");
     p.appendChild(el("h2", null, "아직 공개된 기록이 없습니다"));
-    p.appendChild(el("p", null, "첫 기록이 등록되면 여기에 공개됩니다. 기여 방법은 페이지 아래 안내를 참고해 주세요."));
+    p.appendChild(el("p", null, "첫 기록이 등록되면 여기에 공개됩니다."));
+    const a = el("a", "btn btn-primary", "기록 기여하기");
+    a.href = "submit.html";
+    a.style.marginTop = "16px";
+    p.appendChild(a);
     empty.appendChild(p);
     return;
   }
@@ -400,12 +218,12 @@ function card(r) {
   const key = keyLine(r);
   if (key) meta.appendChild(el("span", "mono", key));
   meta.appendChild(el("span", "sep", "·"));
-  meta.appendChild(el("span", null, (r.submitterLab || "") + (r.submitterName ? " " + r.submitterName : "")));
+  meta.appendChild(el("span", null, (r.submitter_lab || "") + (r.submitter_name ? " " + r.submitter_name : "")));
   meta.appendChild(el("span", "sep", "·"));
-  meta.appendChild(el("span", "tnum", fmtDate(r.createdAt)));
-  if (r.confirmCount) {
+  meta.appendChild(el("span", "tnum", fmtDate(r.created_at)));
+  if (r.confirm_count) {
     meta.appendChild(el("span", "sep", "·"));
-    meta.appendChild(el("span", "confirms tnum", "재현 확인 " + r.confirmCount));
+    meta.appendChild(el("span", "confirms tnum", "재현 확인 " + r.confirm_count));
   }
   (r.tags || []).slice(0, 4).forEach((t) => meta.appendChild(el("span", "tag", t)));
   li.appendChild(meta);
@@ -414,14 +232,6 @@ function card(r) {
   li.addEventListener("click", open);
   li.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
   return li;
-}
-
-function keyLine(r) {
-  if (r.type === "antibody") return [r.target, r.clone, r.catalog].filter(Boolean).join(" · ");
-  if (r.type === "mouse") return [r.lineName, r.stockId].filter(Boolean).join(" · ");
-  if (r.type === "protocol") return [r.procedure, r.kitCatalog].filter(Boolean).join(" · ");
-  if (r.type === "null_result") return r.groups || "";
-  return "";
 }
 
 /* ---- detail, addressed by #id so a single record can be cited ---- */
@@ -436,6 +246,7 @@ function openFromHash() {
 
 function closeDetail(clearHash) {
   state.current = null;
+  document.title = "Negative Data Archive — 고려대학교 의과대학 BK21 의과학과";
   $("#view-detail").hidden = true;
   $("#view-browse").hidden = false;
   $("#toolbar").hidden = false;
@@ -453,7 +264,7 @@ function openDetail(r) {
   document.title = r.title + " — Negative Data Archive";
 
   const back = el("button", "backlink", "← 목록으로");
-  back.addEventListener("click", () => { document.title = "Negative Data Archive — 고려대학교 의과대학 BK21 의과학과"; closeDetail(); render(); });
+  back.addEventListener("click", () => { closeDetail(); render(); });
   root.appendChild(back);
 
   const o = OUTCOMES[r.outcome] || OUTCOMES.dead;
@@ -470,8 +281,7 @@ function openDetail(r) {
     dl.appendChild(el("dt", null, label));
     dl.appendChild(el("dd", mono ? "mono" : null, Array.isArray(val) ? val.join(", ") : val));
   };
-  ((TYPES[r.type] || {}).fields || []).forEach(([k, label, mono]) => push(label, r[k], mono));
-  COMMON.forEach(([k, label]) => push(label, r[k]));
+  allFields(r.type).forEach((fd) => push(fd.label, r[fd.k], fd.mono));
   if (dl.children.length) {
     const s = el("div", "sec");
     s.appendChild(el("h3", null, "조건"));
@@ -479,11 +289,11 @@ function openDetail(r) {
     root.appendChild(s);
   }
 
-  [["상세 기록", r.detail], ["시도한 조건", r.tried], ["해결 / 대안", r.resolution], ["참고 문헌 / 링크", r.refs]].forEach(([h, v]) => {
-    if (!v) return;
+  NARRATIVE.forEach((fd) => {
+    if (!r[fd.k]) return;
     const s = el("div", "sec");
-    s.appendChild(el("h3", null, h));
-    s.appendChild(el("p", "prose", v));
+    s.appendChild(el("h3", null, fd.label));
+    s.appendChild(el("p", "prose", r[fd.k]));
     root.appendChild(s);
   });
 
@@ -492,7 +302,7 @@ function openDetail(r) {
     s.appendChild(el("h3", null, "첨부 데이터"));
     const g = el("div", "shots");
     (r.images || []).forEach((im) => {
-      if (!im.file) return;
+      if (!im || !im.file) return;
       const fig = el("figure", "shot");
       const img = el("img");
       img.src = "data/" + im.file;
@@ -510,14 +320,14 @@ function openDetail(r) {
   prov.appendChild(el("h3", null, "제출"));
   const pdl = el("dl", "dl");
   const p2 = (a, b) => { if (!b) return; pdl.appendChild(el("dt", null, a)); pdl.appendChild(el("dd", null, b)); };
-  p2("제출자", (r.submitterName || "") + (r.submitterLab ? " · " + r.submitterLab : ""));
-  p2("등록일", fmtDate(r.createdAt));
-  if (r.updatedAt && r.updatedAt !== r.createdAt) p2("최종 수정", fmtDate(r.updatedAt));
+  p2("제출자", (r.submitter_name || "") + (r.submitter_lab ? " · " + r.submitter_lab : ""));
+  p2("등록일", fmtDate(r.created_at));
+  if (r.updated_at && r.updated_at !== r.created_at) p2("최종 수정", fmtDate(r.updated_at));
   prov.appendChild(pdl);
   root.appendChild(prov);
 
   const cs = el("div", "sec");
-  cs.appendChild(el("h3", null, "재현 확인 " + (r.confirmCount || 0) + "건"));
+  cs.appendChild(el("h3", null, "재현 확인 " + (r.confirm_count || 0) + "건"));
   if ((r.confirms || []).length) {
     const ul = el("ul", "confirm-list");
     (r.confirms || []).forEach((c) => {
@@ -528,66 +338,34 @@ function openDetail(r) {
     });
     cs.appendChild(ul);
   } else {
-    cs.appendChild(el("p", "prose", r.confirmCount ? "확인한 연구실의 상세 기록은 공개되지 않았습니다." : "아직 다른 연구실의 재현 확인이 없습니다."));
+    cs.appendChild(el("p", "prose", r.confirm_count ? "확인한 연구실의 상세 기록은 공개되지 않았습니다." : "아직 다른 연구실의 재현 확인이 없습니다."));
   }
   root.appendChild(cs);
 
+  const citeText = "Negative Data Archive, 고려대학교 의과대학 BK21 의과학과. 「" + (r.title || "") + "」, "
+    + (r.submitter_name || "") + (r.submitter_lab ? " (" + r.submitter_lab + ")" : "") + ", " + fmtDate(r.created_at)
+    + ". " + pageUrl() + "#" + r.id + " (조회 " + fmtDate(new Date().toISOString()) + ")";
   const cite = el("div", "sec");
   cite.appendChild(el("h3", null, "인용"));
-  const citeText = "Negative Data Archive, 고려대학교 의과대학 BK21 의과학과. 「" + (r.title || "") + "」, "
-    + (r.submitterName || "") + (r.submitterLab ? " (" + r.submitterLab + ")" : "") + ", " + fmtDate(r.createdAt)
-    + ". " + location.origin + location.pathname + "#" + r.id + " (조회 " + fmtDate(new Date().toISOString()) + ")";
   cite.appendChild(el("div", "cite", citeText));
   root.appendChild(cite);
 
   const actions = el("div", "detail-actions");
-  const copy = el("button", "btn", "요약 복사");
-  copy.addEventListener("click", () => copySummary(r, copy));
-  actions.appendChild(copy);
-  const link = el("button", "btn", "링크 복사");
-  link.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(location.origin + location.pathname + "#" + r.id);
-      link.textContent = "복사했습니다";
-      setTimeout(() => { link.textContent = "링크 복사"; }, 1800);
-    } catch (e) { link.textContent = "복사하지 못했습니다"; }
-  });
-  actions.appendChild(link);
-  const citeBtn = el("button", "btn", "인용 복사");
-  citeBtn.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(citeText);
-      citeBtn.textContent = "복사했습니다";
-      setTimeout(() => { citeBtn.textContent = "인용 복사"; }, 1800);
-    } catch (e) { citeBtn.textContent = "복사하지 못했습니다"; }
-  });
-  actions.appendChild(citeBtn);
+  const copyBtn = (label, text) => {
+    const b = el("button", "btn", label);
+    b.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(text);
+        b.textContent = "복사했습니다";
+        setTimeout(() => { b.textContent = label; }, 1800);
+      } catch (e) { b.textContent = "복사하지 못했습니다"; }
+    });
+    return b;
+  };
+  actions.appendChild(copyBtn("요약 복사", recordToText(r, pageUrl() + "#" + r.id)));
+  actions.appendChild(copyBtn("링크 복사", pageUrl() + "#" + r.id));
+  actions.appendChild(copyBtn("인용 복사", citeText));
   root.appendChild(actions);
-}
-
-async function copySummary(r, btn) {
-  const lines = [];
-  lines.push("[" + ((TYPES[r.type] || {}).label || r.type) + " / " + ((OUTCOMES[r.outcome] || {}).label || "") + "] " + r.title);
-  if (r.summary) lines.push(r.summary);
-  lines.push("");
-  ((TYPES[r.type] || {}).fields || []).concat(COMMON).forEach(([k, label]) => {
-    const v = r[k];
-    if (v && (!Array.isArray(v) || v.length)) lines.push("- " + label + ": " + (Array.isArray(v) ? v.join(", ") : v));
-  });
-  if (r.detail) lines.push("", "상세: " + r.detail);
-  if (r.tried) lines.push("", "시도한 조건: " + r.tried);
-  if (r.resolution) lines.push("", "대안: " + r.resolution);
-  if (r.refs) lines.push("", "참고: " + r.refs);
-  lines.push("", "제출: " + (r.submitterName || "") + " (" + (r.submitterLab || "") + ") " + fmtDate(r.createdAt));
-  lines.push(location.origin + location.pathname + "#" + r.id);
-  const text = lines.join("\n");
-  try {
-    await navigator.clipboard.writeText(text);
-    btn.textContent = "복사했습니다";
-    setTimeout(() => { btn.textContent = "요약 복사"; }, 1800);
-  } catch (e) {
-    btn.textContent = "복사하지 못했습니다";
-  }
 }
 </script>
 </body>

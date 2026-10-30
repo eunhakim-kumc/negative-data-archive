@@ -1,0 +1,936 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>기록 제출 — Negative Data Archive</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="고려대학교 의과대학 BK21 의과학과 음성 데이터 아카이브 제출 시스템.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%230C6B61'/%3E%3Cpath d='M16 9v14M9 16h14' stroke='white' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="brand">
+      <div class="eyebrow">고려대학교 의과대학 BK21 의과학과</div>
+      <h1>기록 제출</h1>
+      <p class="tagline">Negative Data Archive에 기록을 등록하고 수정합니다. 등록된 기록은 <a href="./">공개 아카이브</a>에 주 1회 반영됩니다.</p>
+    </div>
+    <div class="mast-actions" id="mast-actions"></div>
+  </div>
+</header>
+
+<div class="toolbar" id="toolbar" hidden>
+  <div class="wrap">
+    <div class="search-row">
+      <input id="q" type="search" placeholder="항원, clone, catalog #, 마우스 라인, 키트, 유전자명으로 검색" autocomplete="off">
+      <select id="sort" aria-label="정렬">
+        <option value="new">최신순</option>
+        <option value="confirm">재현 확인 많은 순</option>
+        <option value="mine">내 기록 먼저</option>
+      </select>
+    </div>
+    <div class="chiprow" id="type-chips"><span class="rowlabel">유형</span></div>
+    <div class="chiprow" id="outcome-chips"><span class="rowlabel">결과</span></div>
+  </div>
+</div>
+
+<main>
+  <div class="wrap">
+    <div id="notice-slot"></div>
+    <section id="view-signin" class="signin" hidden></section>
+    <section id="view-browse" hidden>
+      <p class="counts" id="counts"></p>
+      <ul class="list" id="list"></ul>
+      <div id="empty" hidden></div>
+    </section>
+    <section id="view-detail" class="detail" hidden></section>
+    <section id="view-form" class="form" hidden></section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><strong>기록 원칙</strong> — 조건을 특정할 수 있을 만큼 적습니다. "이 항체는 안 됩니다"가 아니라 "이 lot을, 이 고정 조건에서, 이 조직에 썼을 때 안 됩니다". 음성 데이터는 양성 대조가 살아 있을 때만 의미를 가집니다.</p>
+    <p><strong>공개 범위</strong> — 등록한 기록은 제출자 이름·연구실과 함께 공개 웹사이트에 게시됩니다. 연락처 이메일은 공개되지 않으며, 로그인한 구성원에게만 보입니다.</p>
+    <p>본인이 올린 기록은 언제든 수정·삭제할 수 있습니다.</p>
+  </div>
+</footer>
+
+<script src="schema.js"></script>
+<script src="supabase.js"></script>
+<script>
+"use strict";
+
+const state = {
+  records: [], ready: false, isAdmin: false,
+  q: "", type: "all", outcome: "all", sort: "new", current: null,
+};
+
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, cls, text) => {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+};
+const KU_DOMAIN = "@korea.ac.kr";
+const isKU = () => sb.email.toLowerCase().endsWith(KU_DOMAIN);
+
+function remember(k, v) { try { localStorage.setItem("nda:" + k, v); } catch (e) {} }
+function recall(k) { try { return localStorage.getItem("nda:" + k) || ""; } catch (e) { return ""; } }
+
+function notice(msg, cls) {
+  const slot = $("#notice-slot");
+  slot.innerHTML = "";
+  if (msg) slot.appendChild(el("div", cls || "notice", msg));
+}
+
+/* ------------------------------------------------------------------ */
+
+boot();
+
+async function boot() {
+  sb.init();
+  try { await sb.captureRedirect(); } catch (e) { /* fall through to sign-in */ }
+  await sb.loadUser();
+
+  if (!sb.signedIn) { renderSignIn(); return; }
+
+  if (!isKU()) {
+    renderSignIn("이 아카이브는 고려대학교 계정(" + KU_DOMAIN + ")으로만 기록을 등록할 수 있습니다. 현재 로그인: " + sb.email);
+    return;
+  }
+
+  renderHeaderActions();
+  try {
+    const rows = await sb.select("admins", "select=user_id&user_id=eq." + sb.userId);
+    state.isAdmin = Array.isArray(rows) && rows.length > 0;
+  } catch (e) { state.isAdmin = false; }
+
+  buildChips();
+  wireToolbar();
+  await loadRecords();
+}
+
+async function loadRecords() {
+  $("#list").innerHTML = '<li class="skel"></li><li class="skel"></li><li class="skel"></li>';
+  show("browse");
+  try {
+    state.records = await sb.select("records_public", "select=*&order=created_at.desc") || [];
+    state.ready = true;
+    notice("");
+    render();
+  } catch (e) {
+    state.ready = true;
+    state.records = [];
+    render();
+    notice("기록을 불러오지 못했습니다: " + e.message + " — 스키마(schema.sql)가 실행되었는지 확인해 주세요.");
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Sign in
+ * ------------------------------------------------------------------ */
+
+function renderSignIn(warning) {
+  show("signin");
+  const root = $("#view-signin");
+  root.innerHTML = "";
+  const p = el("div", "panel");
+  p.appendChild(el("h2", null, "로그인"));
+  p.appendChild(el("p", null, "고려대학교 메일 주소를 입력하시면 로그인 링크를 보내드립니다. 비밀번호는 없습니다."));
+  if (warning) p.appendChild(el("div", "notice", warning));
+
+  const form = el("form");
+  const input = el("input");
+  input.type = "email";
+  input.id = "email";
+  input.required = true;
+  input.placeholder = "이름@korea.ac.kr";
+  input.autocomplete = "email";
+  input.value = recall("email");
+  form.appendChild(input);
+
+  const btn = el("button", "btn btn-primary", "로그인 링크 받기");
+  btn.type = "submit";
+  form.appendChild(btn);
+  const msg = el("p", "fine");
+  form.appendChild(msg);
+  p.appendChild(form);
+
+  p.appendChild(el("p", "fine", "메일이 도착하지 않으면 스팸함을 확인해 주세요. 링크는 한 번만 쓸 수 있고 잠시 뒤 만료됩니다."));
+
+  const back = el("p", "fine");
+  const a = el("a", null, "공개 아카이브 둘러보기");
+  a.href = "./";
+  back.appendChild(a);
+  back.appendChild(document.createTextNode(" — 읽는 데에는 로그인이 필요 없습니다."));
+  p.appendChild(back);
+
+  if (sb.signedIn) {
+    const out = el("button", "btn btn-sm", "다른 계정으로 로그인");
+    out.style.marginTop = "12px";
+    out.addEventListener("click", async () => { await sb.signOut(); location.reload(); });
+    p.appendChild(out);
+  }
+  root.appendChild(p);
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = input.value.trim().toLowerCase();
+    msg.className = "fine";
+    if (!email.endsWith(KU_DOMAIN)) {
+      msg.className = "err";
+      msg.textContent = KU_DOMAIN + " 주소만 등록할 수 있습니다.";
+      return;
+    }
+    btn.disabled = true;
+    msg.textContent = "보내는 중…";
+    try {
+      await sb.sendMagicLink(email, location.origin + location.pathname);
+      remember("email", email);
+      msg.className = "ok";
+      msg.textContent = email + " 으로 로그인 링크를 보냈습니다. 메일함을 확인해 주세요.";
+    } catch (err) {
+      btn.disabled = false;
+      msg.className = "err";
+      msg.textContent = err.status === 429
+        ? "요청이 너무 잦습니다. 잠시 후 다시 시도해 주세요."
+        : "링크를 보내지 못했습니다: " + err.message;
+    }
+  });
+  input.focus();
+}
+
+function renderHeaderActions() {
+  const box = $("#mast-actions");
+  box.innerHTML = "";
+  box.appendChild(el("span", "whoami", sb.email + (state.isAdmin ? " · 운영자" : "")));
+  const add = el("button", "btn btn-primary", "기록 추가");
+  add.addEventListener("click", () => openForm(null));
+  box.appendChild(add);
+  const out = el("button", "btn", "로그아웃");
+  out.addEventListener("click", async () => { await sb.signOut(); location.reload(); });
+  box.appendChild(out);
+}
+
+/* ------------------------------------------------------------------ *
+ * Browse
+ * ------------------------------------------------------------------ */
+
+function show(which) {
+  $("#view-signin").hidden = which !== "signin";
+  $("#view-browse").hidden = which !== "browse";
+  $("#view-detail").hidden = which !== "detail";
+  $("#view-form").hidden = which !== "form";
+  $("#toolbar").hidden = which !== "browse";
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function buildChips() {
+  const mk = (row, key, val, label) => {
+    const b = el("button", "chip");
+    b.type = "button";
+    b.dataset.key = key;
+    b.dataset.val = val;
+    b.setAttribute("aria-pressed", String(val === "all"));
+    b.appendChild(el("span", null, label));
+    b.appendChild(el("span", "n", ""));
+    row.appendChild(b);
+  };
+  mk($("#type-chips"), "type", "all", "전체");
+  Object.keys(TYPES).forEach((k) => mk($("#type-chips"), "type", k, TYPES[k].label));
+  mk($("#outcome-chips"), "outcome", "all", "전체");
+  Object.keys(OUTCOMES).forEach((k) => mk($("#outcome-chips"), "outcome", k, OUTCOMES[k].label));
+}
+
+function wireToolbar() {
+  $("#q").addEventListener("input", (e) => { state.q = e.target.value.trim().toLowerCase(); render(); });
+  $("#sort").addEventListener("change", (e) => { state.sort = e.target.value; render(); });
+  document.addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if (!chip) return;
+    state[chip.dataset.key] = chip.dataset.val;
+    show("browse");
+    render();
+  });
+}
+
+function haystack(r) {
+  if (r._hay) return r._hay;
+  const parts = [];
+  Object.keys(r).forEach((k) => {
+    if (k === "images" || k === "_hay") return;
+    const v = r[k];
+    if (typeof v === "string") parts.push(v);
+    else if (Array.isArray(v)) parts.push(v.filter((x) => typeof x === "string").join(" "));
+  });
+  r._hay = parts.join(" \u0001 ").toLowerCase();
+  return r._hay;
+}
+
+function filtered() {
+  let out = state.records.filter((r) => {
+    if (state.type !== "all" && r.type !== state.type) return false;
+    if (state.outcome !== "all" && r.outcome !== state.outcome) return false;
+    if (state.q && haystack(r).indexOf(state.q) === -1) return false;
+    return true;
+  });
+  if (state.sort === "confirm") out = out.slice().sort((a, b) => (b.confirm_count || 0) - (a.confirm_count || 0));
+  else if (state.sort === "mine") {
+    const uid = sb.userId;
+    out = out.slice().sort((a, b) => (b.submitter_id === uid) - (a.submitter_id === uid));
+  }
+  return out;
+}
+
+function render() {
+  document.querySelectorAll(".chip").forEach((c) => {
+    c.setAttribute("aria-pressed", String(state[c.dataset.key] === c.dataset.val));
+    const key = c.dataset.key, v = c.dataset.val;
+    const count = v === "all" ? state.records.length : state.records.filter((r) => r[key] === v).length;
+    c.querySelector(".n").textContent = state.ready ? count : "";
+  });
+  if (!state.ready) return;
+
+  const rows = filtered();
+  const list = $("#list"), empty = $("#empty");
+  list.innerHTML = "";
+  empty.innerHTML = "";
+  const mine = state.records.filter((r) => r.submitter_id === sb.userId).length;
+  $("#counts").textContent = state.records.length === 0 ? ""
+    : rows.length + "건 표시 (전체 " + state.records.length + "건, 내 기록 " + mine + "건)";
+
+  if (state.records.length === 0) {
+    empty.hidden = false;
+    const p = el("div", "panel");
+    p.appendChild(el("h2", null, "아직 기록이 없습니다"));
+    p.appendChild(el("p", null, "첫 기록을 남겨 주세요. 지난주에 안 됐던 항체 하나, 생각보다 새던 Cre 하나면 충분합니다."));
+    const b = el("button", "btn btn-primary", "첫 기록 작성하기");
+    b.style.marginTop = "16px";
+    b.addEventListener("click", () => openForm(null));
+    p.appendChild(b);
+    empty.appendChild(p);
+    return;
+  }
+  if (rows.length === 0) {
+    empty.hidden = false;
+    const p = el("div", "panel");
+    p.appendChild(el("h2", null, "조건에 맞는 기록이 없습니다"));
+    p.appendChild(el("p", null, "검색어나 필터를 넓혀 보세요."));
+    empty.appendChild(p);
+    return;
+  }
+  empty.hidden = true;
+  rows.forEach((r) => list.appendChild(card(r)));
+}
+
+function card(r) {
+  const o = OUTCOMES[r.outcome] || OUTCOMES.dead;
+  const li = el("li", "card");
+  li.style.setProperty("--stripe", o.stripe);
+  li.tabIndex = 0;
+  li.setAttribute("role", "button");
+
+  const top = el("div", "card-top");
+  top.appendChild(el("h3", null, r.title || "(제목 없음)"));
+  top.appendChild(el("span", "badge " + o.cls, o.label));
+  if (r.published === false) top.appendChild(el("span", "badge b-hold", "비공개"));
+  li.appendChild(top);
+  if (r.summary) li.appendChild(el("p", "summary", r.summary));
+
+  const meta = el("div", "meta");
+  meta.appendChild(el("span", "badge b-type", (TYPES[r.type] || {}).label || r.type));
+  const key = keyLine(r);
+  if (key) meta.appendChild(el("span", "mono", key));
+  meta.appendChild(el("span", "sep", "·"));
+  meta.appendChild(el("span", null, (r.submitter_lab || "") + (r.submitter_name ? " " + r.submitter_name : "")));
+  if (r.submitter_id === sb.userId) meta.appendChild(el("span", "tag", "내 기록"));
+  meta.appendChild(el("span", "sep", "·"));
+  meta.appendChild(el("span", "tnum", fmtDate(r.created_at)));
+  if (r.confirm_count) {
+    meta.appendChild(el("span", "sep", "·"));
+    meta.appendChild(el("span", "confirms tnum", "재현 확인 " + r.confirm_count));
+  }
+  (r.tags || []).slice(0, 4).forEach((t) => meta.appendChild(el("span", "tag", t)));
+  li.appendChild(meta);
+
+  const open = () => openDetail(r.id);
+  li.addEventListener("click", open);
+  li.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+  return li;
+}
+
+/* ------------------------------------------------------------------ *
+ * Detail
+ * ------------------------------------------------------------------ */
+
+async function openDetail(id) {
+  const r = state.records.find((x) => x.id === id);
+  if (!r) return;
+  state.current = id;
+  const root = $("#view-detail");
+  root.innerHTML = "";
+  show("detail");
+
+  const back = el("button", "backlink", "← 목록으로");
+  back.addEventListener("click", () => { state.current = null; show("browse"); });
+  root.appendChild(back);
+
+  const o = OUTCOMES[r.outcome] || OUTCOMES.dead;
+  const badges = el("div", "detail-badges");
+  badges.appendChild(el("span", "badge b-type", (TYPES[r.type] || {}).label || r.type));
+  badges.appendChild(el("span", "badge " + o.cls, o.label));
+  if (r.published === false) badges.appendChild(el("span", "badge b-hold", "비공개 — 공개 사이트에 올라가지 않습니다"));
+  root.appendChild(badges);
+  root.appendChild(el("h2", null, r.title || "(제목 없음)"));
+  if (r.summary) root.appendChild(el("p", "lede", r.summary));
+
+  const dl = el("dl", "dl");
+  const push = (label, val, mono) => {
+    if (!val || (Array.isArray(val) && !val.length)) return;
+    dl.appendChild(el("dt", null, label));
+    dl.appendChild(el("dd", mono ? "mono" : null, Array.isArray(val) ? val.join(", ") : val));
+  };
+  allFields(r.type).forEach((fd) => push(fd.label, r[fd.k], fd.mono));
+  if (dl.children.length) {
+    const s = el("div", "sec");
+    s.appendChild(el("h3", null, "조건"));
+    s.appendChild(dl);
+    root.appendChild(s);
+  }
+
+  NARRATIVE.forEach((fd) => {
+    if (!r[fd.k]) return;
+    const s = el("div", "sec");
+    s.appendChild(el("h3", null, fd.label));
+    s.appendChild(el("p", "prose", r[fd.k]));
+    root.appendChild(s);
+  });
+
+  if ((r.images || []).length) {
+    const s = el("div", "sec");
+    s.appendChild(el("h3", null, "첨부 데이터"));
+    const g = el("div", "shots");
+    (r.images || []).forEach((im) => {
+      if (!im || !im.path) return;
+      const fig = el("figure", "shot");
+      const img = el("img");
+      img.src = sb.imageUrl(im.path);
+      img.alt = im.caption || "첨부 데이터";
+      img.loading = "lazy";
+      fig.appendChild(img);
+      if (im.caption) fig.appendChild(el("figcaption", null, im.caption));
+      g.appendChild(fig);
+    });
+    s.appendChild(g);
+    root.appendChild(s);
+  }
+
+  const prov = el("div", "sec");
+  prov.appendChild(el("h3", null, "제출"));
+  const pdl = el("dl", "dl");
+  const p2 = (a, b) => { if (!b) return; pdl.appendChild(el("dt", null, a)); pdl.appendChild(el("dd", null, b)); };
+  p2("제출자", (r.submitter_name || "") + (r.submitter_lab ? " · " + r.submitter_lab : ""));
+  p2("등록일", fmtDate(r.created_at));
+  if (r.updated_at && r.updated_at !== r.created_at) p2("최종 수정", fmtDate(r.updated_at));
+  prov.appendChild(pdl);
+  root.appendChild(prov);
+  loadContact(r.id, pdl);
+
+  const cs = el("div", "sec");
+  cs.id = "confirm-sec";
+  cs.appendChild(el("h3", null, "재현 확인"));
+  root.appendChild(cs);
+
+  const actions = el("div", "detail-actions");
+  const cBtn = el("button", "btn btn-primary", "나도 같은 결과를 얻었습니다");
+  cBtn.addEventListener("click", openConfirmForm);
+  actions.appendChild(cBtn);
+
+  const copy = el("button", "btn", "요약 복사");
+  copy.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(recordToText(r, ""));
+      copy.textContent = "복사했습니다";
+      setTimeout(() => { copy.textContent = "요약 복사"; }, 1800);
+    } catch (e) { copy.textContent = "복사하지 못했습니다"; }
+  });
+  actions.appendChild(copy);
+
+  const mine = r.submitter_id && r.submitter_id === sb.userId;
+  if (mine || state.isAdmin) {
+    const ed = el("button", "btn", "수정");
+    ed.addEventListener("click", () => openForm(r.id));
+    actions.appendChild(ed);
+    const del = el("button", "btn btn-danger", "삭제");
+    del.addEventListener("click", () => removeRecord(r, del));
+    actions.appendChild(del);
+  }
+  if (state.isAdmin) {
+    const hold = el("button", "btn", r.published === false ? "공개로 전환" : "공개 보류");
+    hold.addEventListener("click", () => togglePublished(r, hold));
+    actions.appendChild(hold);
+  }
+  root.appendChild(actions);
+
+  loadConfirms(r.id, cs);
+}
+
+async function loadContact(id, dl) {
+  try {
+    const rows = await sb.select("record_contacts", "select=email&record_id=eq." + id);
+    if (rows && rows.length && rows[0].email) {
+      dl.appendChild(el("dt", null, "연락처"));
+      const dd = el("dd");
+      dd.appendChild(el("span", null, rows[0].email));
+      dd.appendChild(el("span", "hint", " (공개 사이트에는 게시되지 않습니다)"));
+      dl.appendChild(dd);
+    }
+  } catch (e) { /* contacts are optional */ }
+}
+
+async function loadConfirms(id, sec) {
+  let rows = [];
+  try { rows = await sb.select("confirms", "select=*&record_id=eq." + id + "&order=created_at") || []; }
+  catch (e) { return; }
+  const old = sec.querySelector(".confirm-list");
+  if (old) old.remove();
+  if (rows.length) {
+    const ul = el("ul", "confirm-list");
+    rows.forEach((c) => {
+      const li = el("li");
+      if (c.note) li.appendChild(el("div", "prose", c.note));
+      li.appendChild(el("div", "who", (c.name || "") + (c.lab ? " · " + c.lab : "") + " · " + fmtDate(c.created_at)));
+      ul.appendChild(li);
+    });
+    sec.appendChild(ul);
+  } else {
+    sec.appendChild(el("p", "prose", "아직 다른 연구실의 재현 확인이 없습니다. 같은 조건에서 같은 결과를 얻으셨다면 남겨 주세요."));
+  }
+}
+
+function openConfirmForm() {
+  const sec = $("#confirm-sec");
+  if (!sec || sec.querySelector("form")) return;
+  const form = el("form");
+  form.style.marginTop = "12px";
+  form.innerHTML =
+    '<div class="grid2">' +
+    '<div class="f"><label for="cf-name">이름<span class="req">*</span></label><input id="cf-name" required></div>' +
+    '<div class="f"><label for="cf-lab">연구실<span class="req">*</span></label><input id="cf-lab" required></div>' +
+    '<div class="f span2"><label for="cf-note">조건이 달랐다면 적어 주세요</label><textarea id="cf-note" placeholder="예: 같은 clone의 다른 lot(GR3401122-1)에서도 동일하게 신호 없음. 고정은 2% PFA 4 h."></textarea></div>' +
+    '</div><div class="form-actions"><button class="btn btn-primary" type="submit">확인 남기기</button><button class="btn" type="button" data-cancel>취소</button><span class="err" id="cf-msg"></span></div>';
+  sec.appendChild(form);
+  $("#cf-name", form).value = recall("name");
+  $("#cf-lab", form).value = recall("lab");
+  form.querySelector("[data-cancel]").addEventListener("click", () => form.remove());
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = $("#cf-name", form).value.trim();
+    const lab = $("#cf-lab", form).value.trim();
+    const msg = $("#cf-msg", form);
+    if (!name || !lab) { msg.textContent = "이름과 연구실을 입력해 주세요."; return; }
+    remember("name", name); remember("lab", lab);
+    try {
+      await sb.upsert("confirms", {
+        record_id: state.current, user_id: sb.userId,
+        name: name, lab: lab, note: $("#cf-note", form).value.trim() || null,
+      });
+      await loadRecords();
+      openDetail(state.current);
+    } catch (err) {
+      msg.textContent = "저장하지 못했습니다: " + err.message;
+    }
+  });
+  $("#cf-name", form).focus();
+}
+
+async function togglePublished(r, btn) {
+  btn.disabled = true;
+  try {
+    await sb.update("records", "id=eq." + r.id, { published: r.published === false });
+    await loadRecords();
+    openDetail(r.id);
+  } catch (e) {
+    btn.disabled = false;
+    btn.parentElement.appendChild(el("p", "err", "변경하지 못했습니다: " + e.message));
+  }
+}
+
+async function removeRecord(r, btn) {
+  if (btn.dataset.armed !== "1") {
+    btn.dataset.armed = "1";
+    btn.textContent = "한 번 더 누르면 삭제됩니다";
+    setTimeout(() => { btn.dataset.armed = "0"; btn.textContent = "삭제"; }, 4000);
+    return;
+  }
+  btn.disabled = true;
+  try {
+    for (const im of (r.images || [])) if (im && im.path) await sb.deleteImage(im.path);
+    await sb.remove("records", "id=eq." + r.id);
+    state.current = null;
+    await loadRecords();
+  } catch (e) {
+    btn.disabled = false;
+    btn.parentElement.appendChild(el("p", "err", "삭제하지 못했습니다: " + e.message));
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Form
+ * ------------------------------------------------------------------ */
+
+let pending = [];   // {blob, dataUrl, caption} for new files, {existing, caption} for kept ones
+
+function openForm(editId) {
+  const r = editId ? state.records.find((x) => x.id === editId) : null;
+  pending = r ? (r.images || []).map((im) => ({ existing: im, caption: im.caption || "" })) : [];
+  const root = $("#view-form");
+  root.innerHTML = "";
+  show("form");
+
+  const back = el("button", "backlink", "← 취소하고 목록으로");
+  back.addEventListener("click", () => show(state.current ? "detail" : "browse"));
+  root.appendChild(back);
+  root.appendChild(el("h2", null, r ? "기록 수정" : "새 기록"));
+  root.appendChild(el("p", "tagline", "조건을 특정할 수 있을 만큼만 적으면 충분합니다. 빈 칸으로 남겨도 저장됩니다."));
+
+  const form = el("form");
+  form.id = "rec-form";
+  form.noValidate = true;
+  root.appendChild(form);
+
+  form.appendChild(head("무엇에 대한 기록인가요"));
+  const g0 = el("div", "grid2");
+  g0.appendChild(field({ k: "type", label: "기록 유형", type: "select", req: true, opts: Object.keys(TYPES).map((k) => ({ v: k, t: TYPES[k].label })) }, r ? r.type : ""));
+  g0.appendChild(field({ k: "outcome", label: "결과", type: "select", req: true, opts: Object.keys(OUTCOMES).map((k) => ({ v: k, t: OUTCOMES[k].label })) }, r ? r.outcome : ""));
+  form.appendChild(g0);
+  const blurb = el("p");
+  blurb.id = "type-blurb";
+  blurb.style.cssText = "color:var(--ink-3);font-size:13px;margin-top:8px";
+  form.appendChild(blurb);
+
+  const g1 = el("div", "grid2");
+  g1.style.marginTop = "14px";
+  g1.appendChild(field({ k: "title", label: "제목", req: true, span2: true, ph: "한 줄로. 예: anti-IBA1 (ab178846) PFA 과고정 절편에서 신호 없음" }, r ? r.title : ""));
+  g1.appendChild(field({ k: "summary", label: "핵심 요약", req: true, type: "textarea", span2: true, ph: "두세 문장. 무엇을, 어떤 조건에서, 어떻게 했더니 어떤 결과였는지.", hint: "다른 사람이 검색 결과에서 가장 먼저 읽는 문장입니다." }, r ? r.summary : ""));
+  form.appendChild(g1);
+
+  form.appendChild(head("조건", "type-fields-head"));
+  const typeBox = el("div", "grid2");
+  typeBox.id = "type-fields";
+  form.appendChild(typeBox);
+
+  const g2 = el("div", "grid2");
+  g2.style.marginTop = "14px";
+  COMMON.forEach((fd) => g2.appendChild(field(fd, r ? r[fd.k] : "")));
+  form.appendChild(g2);
+
+  form.appendChild(head("기록"));
+  const g3 = el("div", "grid2");
+  NARRATIVE.forEach((fd) => g3.appendChild(field(Object.assign({ span2: true }, fd), r ? r[fd.k] : "")));
+  g3.appendChild(field({ k: "tags", label: "태그", span2: true, ph: "쉼표로 구분. 예: microglia, IHC, tamoxifen", hint: "검색에 쓰입니다." }, r ? (r.tags || []).join(", ") : ""));
+  form.appendChild(g3);
+
+  form.appendChild(head("데이터 첨부 (선택)"));
+  form.appendChild(fileBox());
+
+  form.appendChild(head("제출자"));
+  form.appendChild(el("p", "notice", "이름과 연구실은 공개 웹사이트에 기록과 함께 게시됩니다. 연락처 이메일은 공개되지 않으며, 로그인한 구성원에게만 보입니다."));
+  const g4 = el("div", "grid2");
+  g4.appendChild(field({ k: "submitter_name", label: "이름", req: true, ph: "예: 김은하" }, r ? r.submitter_name : recall("name")));
+  g4.appendChild(field({ k: "submitter_lab", label: "연구실", req: true, ph: "예: 뇌신경과학교실 신경면역연구실" }, r ? r.submitter_lab : recall("lab")));
+  g4.appendChild(field({ k: "contact_email", label: "연락처 이메일", req: true, span2: true, ph: sb.email, hint: "후속 질문을 받을 주소입니다. 기본값은 로그인 계정입니다." }, r ? "" : (recall("contact") || sb.email)));
+  form.appendChild(g4);
+
+  const actions = el("div", "form-actions");
+  const save = el("button", "btn btn-primary", r ? "수정 저장" : "아카이브에 등록");
+  save.type = "submit";
+  actions.appendChild(save);
+  const cancel = el("button", "btn", "취소");
+  cancel.type = "button";
+  cancel.addEventListener("click", () => show(state.current ? "detail" : "browse"));
+  actions.appendChild(cancel);
+  const status = el("span", "err");
+  status.id = "form-status";
+  actions.appendChild(status);
+  form.appendChild(actions);
+
+  const typeSel = $("#f-type", form);
+  typeSel.addEventListener("change", () => renderTypeFields(typeSel.value, r));
+  renderTypeFields(typeSel.value, r);
+  if (r) loadContactIntoForm(r.id);
+
+  form.addEventListener("submit", (e) => { e.preventDefault(); submitForm(r, save, status); });
+}
+
+async function loadContactIntoForm(id) {
+  try {
+    const rows = await sb.select("record_contacts", "select=email&record_id=eq." + id);
+    const input = $("#f-contact_email");
+    if (input && rows && rows.length) input.value = rows[0].email || "";
+  } catch (e) { /* leave blank */ }
+}
+
+function head(text, id) {
+  const h = el("div", "fs-head", text);
+  if (id) h.id = id;
+  return h;
+}
+
+function renderTypeFields(type, r) {
+  const box = $("#type-fields");
+  box.innerHTML = "";
+  const t = TYPES[type];
+  $("#type-blurb").textContent = t ? t.blurb : "";
+  const headEl = $("#type-fields-head");
+  if (headEl) headEl.textContent = t ? t.label + " 조건" : "조건";
+  if (!t) return;
+  t.fields.forEach((fd) => box.appendChild(field(fd, r && r.type === type ? r[fd.k] : "")));
+}
+
+function field(fd, val) {
+  const wrap = el("div", "f" + (fd.span2 || fd.type === "textarea" || fd.type === "multi" ? " span2" : ""));
+  const id = "f-" + fd.k;
+  const lab = el("label");
+  lab.htmlFor = id;
+  lab.appendChild(document.createTextNode(fd.label));
+  if (fd.req) lab.appendChild(el("span", "req", "*"));
+  wrap.appendChild(lab);
+
+  let input;
+  if (fd.type === "textarea") {
+    input = el("textarea");
+    input.value = val || "";
+  } else if (fd.type === "select") {
+    input = el("select");
+    input.appendChild(new Option("선택하세요", ""));
+    (fd.opts || []).forEach((o) => {
+      const v = typeof o === "string" ? o : o.v;
+      const t = typeof o === "string" ? o : o.t;
+      input.appendChild(new Option(t, v));
+    });
+    input.value = val || "";
+  } else if (fd.type === "multi") {
+    input = el("div", "optgrid");
+    const chosen = Array.isArray(val) ? val : [];
+    (fd.opts || []).forEach((o, i) => {
+      const l = el("label");
+      const cb = el("input");
+      cb.type = "checkbox";
+      cb.value = o;
+      cb.id = id + "-" + i;
+      cb.checked = chosen.indexOf(o) !== -1;
+      cb.dataset.multi = fd.k;
+      l.appendChild(cb);
+      l.appendChild(document.createTextNode(o));
+      input.appendChild(l);
+    });
+    input.id = id;
+    wrap.appendChild(input);
+    if (fd.hint) wrap.appendChild(el("span", "hint", fd.hint));
+    return wrap;
+  } else {
+    input = el("input");
+    input.type = "text";
+    input.value = val || "";
+  }
+  input.id = id;
+  input.name = fd.k;
+  if (fd.ph) input.placeholder = fd.ph;
+  if (fd.mono) input.classList.add("mono");
+  wrap.appendChild(input);
+  if (fd.hint) wrap.appendChild(el("span", "hint", fd.hint));
+  return wrap;
+}
+
+function fileBox() {
+  const box = el("div", "filebox");
+  box.appendChild(el("p", "hint", "FACS plot, blot, 염색 이미지 등. 업로드 전에 긴 변 1400 px로 축소합니다. 파일당 5 MB 이하, 최대 4장."));
+  const inp = el("input");
+  inp.type = "file";
+  inp.id = "f-images";
+  inp.accept = "image/png,image/jpeg,image/webp";
+  inp.multiple = true;
+  inp.style.marginTop = "10px";
+  box.appendChild(inp);
+  const thumbs = el("div", "thumbs");
+  thumbs.id = "thumbs";
+  box.appendChild(thumbs);
+  inp.addEventListener("change", async () => {
+    for (const file of Array.from(inp.files || [])) {
+      if (pending.length >= 4) break;
+      if (file.size > 5 * 1024 * 1024) continue;
+      try {
+        const out = await downscale(file);
+        pending.push({ blob: out.blob, dataUrl: out.dataUrl, caption: "" });
+      } catch (e) { /* unreadable image */ }
+    }
+    inp.value = "";
+    renderThumbs();
+  });
+  renderThumbs();
+  return box;
+}
+
+function renderThumbs() {
+  const t = $("#thumbs");
+  if (!t) return;
+  t.innerHTML = "";
+  pending.forEach((p, i) => {
+    const d = el("div", "thumb");
+    const img = el("img");
+    img.alt = "첨부 미리보기";
+    if (p.dataUrl) img.src = p.dataUrl;
+    else if (p.existing && p.existing.path) img.src = sb.imageUrl(p.existing.path);
+    d.appendChild(img);
+    const cap = el("input");
+    cap.type = "text";
+    cap.id = "cap-" + i;
+    cap.placeholder = "설명 (예: 좌 WT, 우 KO. 동일 노출)";
+    cap.value = p.caption || "";
+    cap.addEventListener("input", () => { p.caption = cap.value; });
+    d.appendChild(cap);
+    const rm = el("button", null, "제거");
+    rm.type = "button";
+    rm.addEventListener("click", () => { pending.splice(i, 1); renderThumbs(); });
+    d.appendChild(rm);
+    t.appendChild(d);
+  });
+}
+
+/* Downscale in the browser so a 12-megapixel microscope export does not
+   eat the project's storage quota. */
+async function downscale(file, maxDim = 1400, quality = 0.82) {
+  const bmp = await createImageBitmap(file);
+  const scale = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
+  const w = Math.max(1, Math.round(bmp.width * scale));
+  const h = Math.max(1, Math.round(bmp.height * scale));
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#ffffff";        // JPEG has no alpha; keep PNG transparency white
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(bmp, 0, 0, w, h);
+  if (bmp.close) bmp.close();
+  const blob = await new Promise((res) => c.toBlob(res, "image/jpeg", quality));
+  return { blob: blob, dataUrl: c.toDataURL("image/jpeg", quality) };
+}
+
+function collect(form) {
+  const out = {};
+  form.querySelectorAll("input[type=text], textarea, select").forEach((n) => {
+    if (!n.name) return;
+    out[n.name] = n.value.trim();
+  });
+  const multi = {};
+  form.querySelectorAll("input[type=checkbox][data-multi]").forEach((n) => {
+    if (!multi[n.dataset.multi]) multi[n.dataset.multi] = [];
+    if (n.checked) multi[n.dataset.multi].push(n.value);
+  });
+  Object.assign(out, multi);
+  return out;
+}
+
+function labelOf(k, type) {
+  const common = {
+    type: "기록 유형", outcome: "결과", title: "제목", summary: "핵심 요약",
+    submitter_name: "이름", submitter_lab: "연구실", contact_email: "연락처 이메일",
+  };
+  if (common[k]) return common[k];
+  const fd = ((TYPES[type] || {}).fields || []).find((x) => x.k === k);
+  return fd ? fd.label : k;
+}
+
+async function submitForm(existing, btn, status) {
+  const form = $("#rec-form");
+  status.className = "err";
+  status.textContent = "";
+
+  const data = collect(form);
+  data.type = $("#f-type").value;
+  data.outcome = $("#f-outcome").value;
+
+  const required = ["type", "outcome", "title", "summary", "submitter_name", "submitter_lab", "contact_email"]
+    .concat(((TYPES[data.type] || {}).fields || []).filter((x) => x.req).map((x) => x.k));
+  const missing = required.filter((k) => !data[k]);
+  if (missing.length) {
+    status.textContent = "필수 항목이 비어 있습니다: " + missing.map((k) => labelOf(k, data.type)).join(", ");
+    const first = $("#f-" + missing[0]);
+    if (first) { first.focus(); first.scrollIntoView({ block: "center" }); }
+    return;
+  }
+
+  const contactEmail = data.contact_email;
+  delete data.contact_email;
+  data.tags = (data.tags || "").split(",").map((s) => s.trim()).filter(Boolean);
+  remember("name", data.submitter_name);
+  remember("lab", data.submitter_lab);
+  remember("contact", contactEmail);
+
+  btn.disabled = true;
+  status.className = "ok";
+  status.textContent = "저장하는 중…";
+
+  // Only the fields this type actually uses; everything else stays null so
+  // a record edited into another type does not keep the old type's values.
+  const row = { type: data.type, outcome: data.outcome, title: data.title, summary: data.summary,
+                tags: data.tags, submitter_name: data.submitter_name, submitter_lab: data.submitter_lab };
+  COMMON.concat(NARRATIVE).forEach((fd) => { row[fd.k] = data[fd.k] || null; });
+  Object.keys(TYPES).forEach((t) => {
+    TYPES[t].fields.forEach((fd) => {
+      if (t === data.type) row[fd.k] = (data[fd.k] && data[fd.k].length) ? data[fd.k] : null;
+      else if (!(fd.k in row)) row[fd.k] = null;
+    });
+  });
+
+  let images = [];
+  try {
+    for (const p of pending) {
+      if (p.existing) { images.push({ path: p.existing.path, caption: p.caption || "" }); continue; }
+      const path = await sb.uploadImage(p.blob);
+      images.push({ path: path, caption: p.caption || "" });
+    }
+  } catch (e) {
+    btn.disabled = false;
+    status.className = "err";
+    status.textContent = "이미지를 올리지 못했습니다: " + e.message + " — 이미지를 빼고 다시 시도해 보세요.";
+    return;
+  }
+  row.images = images;
+
+  try {
+    let saved;
+    if (existing) {
+      saved = await sb.update("records", "id=eq." + existing.id, row);
+      // Remove storage objects the edit dropped.
+      const kept = images.map((i) => i.path);
+      for (const im of (existing.images || [])) {
+        if (im && im.path && kept.indexOf(im.path) === -1) await sb.deleteImage(im.path);
+      }
+    } else {
+      row.submitter_id = sb.userId;
+      saved = await sb.insert("records", row);
+    }
+    await sb.upsert("record_contacts", { record_id: saved.id, email: contactEmail });
+    pending = [];
+    await loadRecords();
+    state.current = saved.id;
+    openDetail(saved.id);
+  } catch (e) {
+    btn.disabled = false;
+    status.className = "err";
+    status.textContent = e.status === 401 || e.status === 403
+      ? "저장 권한이 없습니다. " + KU_DOMAIN + " 계정으로 로그인했는지 확인해 주세요."
+      : "저장하지 못했습니다: " + e.message;
+  }
+}
+</script>
+</body>
+</html>
