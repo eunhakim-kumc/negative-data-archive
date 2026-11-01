@@ -26,6 +26,18 @@ import argparse
 import json
 import os
 import sys
+
+# macOS ships an ancient Python 3.7 inside the Xcode Command Line Tools, and
+# putting that directory on PATH (which is needed to get a working `git`
+# here) shadows the real interpreter. That 3.7 has no usable CA bundle, so
+# every HTTPS call dies with CERTIFICATE_VERIFY_FAILED. Fail with the reason
+# rather than the symptom.
+if sys.version_info < (3, 9):
+    sys.exit(
+        f"오류: Python {sys.version.split()[0]} 으로 실행되었습니다 ({sys.executable}).\n"
+        "Command Line Tools 의 낡은 python3 가 PATH 앞에 온 경우입니다. "
+        "전체 경로로 다시 실행하세요. 예: /opt/homebrew/bin/python3 sync/build_site.py"
+    )
 import urllib.error
 import urllib.parse
 import urllib.request
