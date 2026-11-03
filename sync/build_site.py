@@ -219,14 +219,28 @@ def main():
         print("  --dry-run: 파일을 쓰지 않았습니다.")
         return
 
-    payload = {
-        "generatedAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "count": len(records),
-        "records": records,
-    }
     out_file = data_out / "records.json"
-    out_file.write_text(json.dumps(payload, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
-    print(f"  작성: {out_file}")
+
+    # A daily sync would otherwise rewrite generatedAt every morning and leave
+    # a commit behind on days when nobody submitted anything. Compare the
+    # records themselves and leave the file alone when they have not moved.
+    previous = None
+    if out_file.exists():
+        try:
+            previous = json.loads(out_file.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            previous = None
+
+    if previous is not None and previous.get("records") == records:
+        print(f"  변경 없음: {out_file} 를 그대로 둡니다")
+    else:
+        payload = {
+            "generatedAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "count": len(records),
+            "records": records,
+        }
+        out_file.write_text(json.dumps(payload, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+        print(f"  작성: {out_file}")
 
     # Drop images no record points at, so a deletion in the submission app
     # also disappears from the public mirror.
