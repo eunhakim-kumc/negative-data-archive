@@ -3,12 +3,18 @@
    replaces the index in place so the page never stacks scroll areas. */
 
 :root{
-  --paper:#F6F8F8; --surface:#FFFFFF; --surface-2:#EFF3F3;
-  --ink:#14181B; --ink-2:#4E585E; --ink-3:#7C878D;
-  --line:#DCE3E4; --line-2:#C3CDCF;
-  --accent:#0C6B61; --accent-ink:#FFFFFF; --accent-soft:#E0EFEC;
-  --o-dead:#AE3119; --o-cond:#9A6500; --o-repro:#65479A; --o-nodiff:#36689E;
-  --o-dead-soft:#F7E6E2; --o-cond-soft:#F7EEDC; --o-repro-soft:#EDE8F7; --o-nodiff-soft:#E3ECF5;
+  /* Crimson, after Korea University's own identity colour (#7C0019 on
+     korea.ac.kr). Neutrals are warmed to sit under it rather than fight it.
+     The four outcome colours stay clear of the accent: crimson is the
+     interface, and a record's result must not read as branding. */
+  --paper:#F8F6F6; --surface:#FFFFFF; --surface-2:#F1EDED;
+  --ink:#1B1618; --ink-2:#5A5053; --ink-3:#7A6E71;
+  --line:#E4DCDD; --line-2:#CDC2C4;
+  --accent:#7C0019; --accent-ink:#FFFFFF; --accent-soft:#F7E7EA;
+  --brand:#7C0019;
+  --good:#1C6B4C;
+  --o-dead:#B04420; --o-cond:#8F6200; --o-repro:#65479A; --o-nodiff:#2F6396;
+  --o-dead-soft:#F8E6DF; --o-cond-soft:#F6EEDA; --o-repro-soft:#EDE8F7; --o-nodiff-soft:#E3ECF5;
   --sans:"IBM Plex Sans KR","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   --gut-l:max(16px,env(safe-area-inset-left,0px));
@@ -17,22 +23,26 @@
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --paper:#111517; --surface:#181D1F; --surface-2:#1F2528;
-    --ink:#E7ECED; --ink-2:#9BA6AB; --ink-3:#77838A;
-    --line:#2A3135; --line-2:#3A4348;
-    --accent:#4FB5A6; --accent-ink:#0B1A18; --accent-soft:#16312D;
-    --o-dead:#E5836C; --o-cond:#D4A449; --o-repro:#A890DD; --o-nodiff:#79A9DB;
-    --o-dead-soft:#32201C; --o-cond-soft:#302715; --o-repro-soft:#272036; --o-nodiff-soft:#1C2731;
+    --paper:#151113; --surface:#1D1819; --surface-2:#262021;
+    --ink:#EDE7E8; --ink-2:#A99EA1; --ink-3:#8E8285;
+    --line:#332B2D; --line-2:#453B3E;
+    --accent:#EE8299; --accent-ink:#2A0009; --accent-soft:#3A1620;
+    --brand:#A3122F;
+    --good:#57C79A;
+    --o-dead:#E8906B; --o-cond:#D4A449; --o-repro:#AE94E0; --o-nodiff:#7FADDE;
+    --o-dead-soft:#33211A; --o-cond-soft:#302715; --o-repro-soft:#272036; --o-nodiff-soft:#1C2731;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --paper:#111517; --surface:#181D1F; --surface-2:#1F2528;
-  --ink:#E7ECED; --ink-2:#9BA6AB; --ink-3:#77838A;
-  --line:#2A3135; --line-2:#3A4348;
-  --accent:#4FB5A6; --accent-ink:#0B1A18; --accent-soft:#16312D;
-  --o-dead:#E5836C; --o-cond:#D4A449; --o-repro:#A890DD; --o-nodiff:#79A9DB;
-  --o-dead-soft:#32201C; --o-cond-soft:#302715; --o-repro-soft:#272036; --o-nodiff-soft:#1C2731;
+  --paper:#151113; --surface:#1D1819; --surface-2:#262021;
+  --ink:#EDE7E8; --ink-2:#A99EA1; --ink-3:#8E8285;
+  --line:#332B2D; --line-2:#453B3E;
+  --accent:#EE8299; --accent-ink:#2A0009; --accent-soft:#3A1620;
+  --brand:#A3122F;
+  --good:#57C79A;
+  --o-dead:#E8906B; --o-cond:#D4A449; --o-repro:#AE94E0; --o-nodiff:#7FADDE;
+  --o-dead-soft:#33211A; --o-cond-soft:#302715; --o-repro-soft:#272036; --o-nodiff-soft:#1C2731;
   color-scheme:dark;
 }
 
@@ -55,7 +65,7 @@ a{color:var(--accent)}
 .tnum{font-variant-numeric:tabular-nums}
 
 /* ---- masthead ---- */
-.masthead{background:var(--surface);border-bottom:1px solid var(--line)}
+.masthead{background:var(--surface);border-top:3px solid var(--brand);border-bottom:1px solid var(--line)}
 .masthead .wrap{padding-block:26px 22px;display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between}
 .brand{min-width:0;max-width:62ch}
 .eyebrow{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
@@ -161,7 +171,7 @@ main{padding-block:22px 56px}
 .thumb button{width:100%;border:0;border-top:1px solid var(--line);background:transparent;color:var(--o-dead);cursor:pointer;font-size:12.5px;padding:5px}
 .form-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:28px;padding-top:18px;border-top:1px solid var(--line)}
 .err{color:var(--o-dead);font-size:13.5px}
-.ok{color:var(--accent);font-size:13.5px}
+.ok{color:var(--good);font-size:13.5px}
 
 /* ---- sign in ---- */
 .signin{max-width:460px;margin-inline:auto}
